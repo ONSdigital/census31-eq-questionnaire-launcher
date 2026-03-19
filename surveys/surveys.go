@@ -151,7 +151,7 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 	}
 
 	log.Printf("CIR API Base URL: %s", hostURL)
-	url := fmt.Sprintf("%s/v2/ci_metadata", hostURL)
+	url := fmt.Sprintf("%s/v3/ci_metadata", hostURL)
 	log.Printf("I've accessed ci_metadata endpoint using: %s", url)
 
 	resp, err := client.Get(url)
@@ -159,6 +159,7 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 		log.Print(err)
 		return ciMetadataList
 	}
+	log.Printf("I've made the request to the url: %s", url)
 
 	responseBody, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
@@ -166,13 +167,16 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 		log.Print(err)
 		return ciMetadataList
 	}
+	log.Printf("I've read the response and got a list")
 
 	if err := json.Unmarshal(responseBody, &ciMetadataList); err != nil {
 		log.Print(err)
 		return ciMetadataList
 	}
+	log.Printf("I've unmarshaled the JSON")
 	// Easier to navigate schemas in alphabetical order
 	sort.Slice(ciMetadataList, func(i, j int) bool { return ciMetadataList[i].SchemaName < ciMetadataList[j].SchemaName })
+	log.Printf("I'm returned the CI list")
 	return ciMetadataList
 }
 
