@@ -152,10 +152,12 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 
 	log.Printf("CIR API Base URL: %s", hostURL)
 	url := fmt.Sprintf("%s/v3/ci_metadata", hostURL)
-	log.Printf("I've accessed ci_metadata endpoint using: %s", url)
+	log.Printf("I've constructed ci_metadata endpoint using: %s", url)
 
 	resp, err := client.Get(url)
+	log.Printf("Attempted to access endpoing")
 	if err != nil || resp.StatusCode != 200 {
+		log.Printf("Not working")
 		log.Print(err)
 		return ciMetadataList
 	}
