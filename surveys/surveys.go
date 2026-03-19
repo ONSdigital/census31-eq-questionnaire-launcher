@@ -151,7 +151,7 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 	}
 
 	log.Printf("CIR API Base URL: %s", hostURL)
-	url := fmt.Sprintf("%s/v3/ci_metadata", hostURL)
+	url := fmt.Sprintf("%s/v2/ci_metadata", hostURL)
 	log.Printf("I've constructed ci_metadata endpoint using: %s", url)
 
 	resp, err := client.Get(url)
