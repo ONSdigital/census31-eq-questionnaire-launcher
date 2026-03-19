@@ -21,7 +21,7 @@ func init() {
 	setSetting("SCHEMA_VALIDATOR_URL", "")
 	setSetting("SURVEY_REGISTER_URL", "")
 	setSetting("SDS_API_BASE_URL", "http://localhost:5003")
-	setSetting("CIR_API_BASE_URL", "http://localhost:5004")
+	setSetting("CIR_API_BASE_URL", "http://localhost:3030")
 	setSetting("JWT_ENCRYPTION_KEY_PATH", "jwt-test-keys/sdc-user-authentication-encryption-sr-public-key.pem")
 	setSetting("JWT_SIGNING_KEY_PATH", "jwt-test-keys/sdc-user-authentication-signing-launcher-private-key.pem")
 	setSetting("OIDC_TOKEN_VALIDITY_IN_SECONDS", "3600")
