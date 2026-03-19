@@ -158,7 +158,7 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 	log.Printf("Attempted to access endpoing")
 	if err != nil || resp.StatusCode != 200 {
 		log.Printf("Not working")
-		log.Print(err)
+		log.Print(resp.StatusCode)
 		return ciMetadataList
 	}
 	log.Printf("I've made the request to the url: %s", url)
