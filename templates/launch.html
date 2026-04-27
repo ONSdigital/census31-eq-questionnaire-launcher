@@ -69,13 +69,17 @@
                             <option selected disabled>Select Schema</option>
                             {{ range $cirSchema := .CirSchemas }}
                             <option value="{{ $cirSchema.GUID }}"
-                                    data-schema-name="{{ $cirSchema.SchemaName }}"
+                                    data-schema-name="{{ $cirSchema.Title }}"
                                     data-form-type="{{ $cirSchema.ClassifierValue }}"
                                     data-version="{{ $cirSchema.CIVersion }}"
                                     data-language="{{ $cirSchema.Language }}"
                                     data-title="{{ $cirSchema.Title }}"
                                     data-validator-version="{{ $cirSchema.ValidatorVersion }}">
-                                {{ $cirSchema.SchemaName }} ({{ $cirSchema.Language }})
+                                {{ if HasPrefix $cirSchema.Title "Test" }}
+                                    schema_title: {{ $cirSchema.Title }}
+                                {{ else }}
+                                    survey_id: {{ $cirSchema.SurveyID }} form_type: {{ $cirSchema.ClassifierValue }} ci_version: {{ $cirSchema.CIVersion }}
+                                {{ end }}
                             </option>
                             {{ end }}
                         </select>

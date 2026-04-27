@@ -2,16 +2,15 @@ package main // import "github.com/ONSdigital/eq-questionnaire-launcher"
 
 import (
 	"fmt"
-	"time"
-
+	"html"
 	"html/template"
 	"log"
 	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
-
-	"html"
+	"strings"
+	"time"
 
 	"github.com/ONSdigital/eq-questionnaire-launcher/authentication"
 	"github.com/ONSdigital/eq-questionnaire-launcher/settings"
@@ -43,7 +42,12 @@ func serveTemplate(templateName string, data interface{}, w http.ResponseWriter,
 		return
 	}
 
-	tmpl, err := template.ParseFiles(lp, fp)
+	// Register custom template functions
+	tmpl := template.New("layout.html").Funcs(template.FuncMap{
+		"HasPrefix": strings.HasPrefix,
+	})
+
+	tmpl, err = tmpl.ParseFiles(lp, fp)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, http.StatusText(500), 500)
