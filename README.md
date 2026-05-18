@@ -29,7 +29,7 @@ docker buildx build --platform linux/arm64 --no-cache -t census31-eq-questionnai
 You can then run the image using `SURVEY_RUNNER_SCHEMA_URL` to point it at an instance of survey runner.
 
 ```
-docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 onsdigital/censu31-eq-questionnaire-launcher:latest
+docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 onsdigital/census31-eq-questionnaire-launcher:latest
 ```
 
 The syntax for this will be slightly different on Mac
