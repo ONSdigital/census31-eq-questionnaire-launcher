@@ -1,15 +1,19 @@
 # Start from golang base image
-FROM golang:1.21 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.21 AS builder
+ARG TARGETOS
+ARG TARGETARCH
 
 WORKDIR /go/src/github.com/ONSdigital/census31-eq-questionnaire-launcher
 
 COPY . .
 
 # Download dependencies
-RUN go get
+RUN go mod download
 
 # Build the Go app
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -mod mod -o /go/bin/census31-eq-questionnaire-launcher .
+RUN echo "TARGETOS:" $TARGETOS
+RUN echo "TARGETARCH" $TARGETARCH
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -installsuffix cgo -mod mod -o /go/bin/census31-eq-questionnaire-launcher .
 
 ######## Start a new stage from scratch #######
 FROM alpine:latest
