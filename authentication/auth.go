@@ -6,7 +6,6 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/ONSdigital/eq-questionnaire-launcher/oidc"
 	"io"
 	"math/rand"
 	"net/http"
@@ -14,9 +13,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/ONSdigital/eq-questionnaire-launcher/clients"
-	"github.com/ONSdigital/eq-questionnaire-launcher/settings"
-	"github.com/ONSdigital/eq-questionnaire-launcher/surveys"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/oidc"
+
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
 	"github.com/gofrs/uuid"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/json"

@@ -10,9 +10,9 @@ import (
 	"strings"
 
 	"github.com/AreaHQ/jsonhal"
-	"github.com/ONSdigital/eq-questionnaire-launcher/clients"
-	"github.com/ONSdigital/eq-questionnaire-launcher/oidc"
-	"github.com/ONSdigital/eq-questionnaire-launcher/settings"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/oidc"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
