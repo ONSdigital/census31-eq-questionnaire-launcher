@@ -23,7 +23,7 @@ docker buildx build --platform linux/amd64 --no-cache -t census31-eq-questionnai
 ```
 or
 ```
-docker buildx build --platform linux/armd64 --no-cache -t census31-eq-questionnaire-launcher:latest .
+docker buildx build --platform linux/arm64 --no-cache -t census31-eq-questionnaire-launcher:latest .
 ```
 
 You can then run the image using `SURVEY_RUNNER_SCHEMA_URL` to point it at an instance of survey runner.
