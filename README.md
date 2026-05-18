@@ -29,22 +29,16 @@ docker buildx build --platform linux/arm64 --no-cache -t census31-eq-questionnai
 You can then run the image using `SURVEY_RUNNER_SCHEMA_URL` to point it at an instance of survey runner.
 
 ```
-docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 onsdigital/census31-eq-questionnaire-launcher:latest
+docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 census31-eq-questionnaire-launcher:latest
 ```
 
 The syntax for this will be slightly different on Mac
 
 ```
-docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8000:8000 onsdigital/census31-eq-questionnaire-launcher:latest
+docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8000:8000 census31-eq-questionnaire-launcher:latest
 ```
 
 You should then be able to access go launcher at `localhost:8000`
-
-You can also run a Survey Register for launcher to load Schemas from
-
-```
-docker run -it -p 8080:8080 onsdigital/eq-survey-register:simple-rest-api
-```
 
 ## Run Quick-Launch
 If the schema specifies a `schema_name` field, that will be used as the schema_name claim. If not, the filename from the URL (before `.`) will be used.
