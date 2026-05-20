@@ -16,14 +16,9 @@ go run launch.go (Does both the build and run cmd above)
 Open http://localhost:8000/
 
 ## Docker
-The dockerfile is a multistage dockerfile which can be built using:
-
+The Docker image can be build using the following command, providing the required target platform architecture as required
 ```
-docker buildx build --platform linux/amd64 --no-cache -t census31-eq-questionnaire-launcher:latest .
-```
-or
-```
-docker buildx build --platform linux/arm64 --no-cache -t census31-eq-questionnaire-launcher:latest .
+docker buildx build --platform [ linux/amd64 | linux/arm64 ] --no-cache -t census31-eq-questionnaire-launcher:latest .
 ```
 
 You can then run the image using `SURVEY_RUNNER_SCHEMA_URL` to point it at an instance of survey runner.
