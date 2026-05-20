@@ -16,7 +16,7 @@ go run launch.go (Does both the build and run cmd above)
 Open http://localhost:8000/
 
 ## Docker
-The Docker image can be build using the following command, providing the required target platform architecture as required
+The Docker image can be built using the following command, providing the required target platform architecture as required
 ```
 docker buildx build --platform [ linux/amd64 | linux/arm64 ] --no-cache -t census31-eq-questionnaire-launcher:latest .
 ```
