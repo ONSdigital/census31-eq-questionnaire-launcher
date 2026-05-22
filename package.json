@@ -1,5 +1,5 @@
 {
-  "name": "eq-questionnaire-launcher",
+  "name": "census31-eq-questionnaire-launcher",
   "version": "2.0.0",
   "description": "ONS Digital eQ Questionnaire Launcher Dev Tool",
   "author": {
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ONSdigital/eq-questionnaire-launcher"
+    "url": "https://github.com/ONSdigital/census31-eq-questionnaire-launcher"
   },
   "devDependencies": {
     "eslint": "8.57.0",

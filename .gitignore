@@ -27,7 +27,7 @@ _testmain.go
 vendor/
 
 # binaries
-eq-questionnaire-launcher
+census31-eq-questionnaire-launcher
 
 # Dev config
 .vscode/

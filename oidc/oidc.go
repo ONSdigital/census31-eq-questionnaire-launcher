@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/ONSdigital/eq-questionnaire-launcher/settings"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"github.com/patrickmn/go-cache"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"

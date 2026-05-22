@@ -1,4 +1,4 @@
-package main // import "github.com/ONSdigital/eq-questionnaire-launcher"
+package main // import "github.com/ONSdigital/census31-eq-questionnaire-launcher"
 
 import (
 	"fmt"
@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ONSdigital/eq-questionnaire-launcher/authentication"
-	"github.com/ONSdigital/eq-questionnaire-launcher/settings"
-	"github.com/ONSdigital/eq-questionnaire-launcher/surveys"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/authentication"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
 	"gopkg.in/square/go-jose.v2/json"

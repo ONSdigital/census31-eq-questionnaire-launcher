@@ -1,4 +1,4 @@
-module github.com/ONSdigital/eq-questionnaire-launcher
+module github.com/ONSdigital/census31-eq-questionnaire-launcher
 
 go 1.21
 
