@@ -11,9 +11,9 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/ONSdigital/eq-questionnaire-launcher/clients"
-	"github.com/ONSdigital/eq-questionnaire-launcher/settings"
-	"github.com/ONSdigital/eq-questionnaire-launcher/surveys"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
 	"github.com/gofrs/uuid"
 	"gopkg.in/square/go-jose.v2"
 	"gopkg.in/square/go-jose.v2/json"
@@ -143,7 +143,7 @@ func generateClaims(claimValues map[string][]string, launcherSchema surveys.Laun
 			claims[key] = value
 		}
 	}
-    var isCensusTestSchema = len(claimValues["schema_name"]) > 0 && claimValues["schema_name"][0] == "test_individual_response"
+	var isCensusTestSchema = len(claimValues["schema_name"]) > 0 && claimValues["schema_name"][0] == "test_individual_response"
 	if !isCensusTestSchema && (len(claimValues["survey"]) > 0 || len(claimValues["form_type"]) > 0 || len(claimValues["region_code"]) > 0) {
 		log.Println("Deleting schema name from claims")
 		delete(claims, "schema_name")

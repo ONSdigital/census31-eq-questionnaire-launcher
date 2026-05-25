@@ -11,8 +11,8 @@ import (
 	"strings"
 
 	"github.com/AreaHQ/jsonhal"
-	"github.com/ONSdigital/eq-questionnaire-launcher/clients"
-	"github.com/ONSdigital/eq-questionnaire-launcher/settings"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
+	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 )
 
 // LauncherSchema is a representation of a schema in the Launcher

@@ -25,13 +25,13 @@ docker build -t eq-questionnaire-launcher:latest .
 You can then run the image using `SURVEY_RUNNER_SCHEMA_URL` to point it at an instance of survey runner.
 
 ```
-docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 onsdigital/eq-questionnaire-launcher:latest
+docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 onsdigital/census31-eq-questionnaire-launcher:latest
 ```
 
 The syntax for this will be slightly different on Mac
 
 ```
-docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8000:8000 onsdigital/eq-questionnaire-launcher:latest
+docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8000:8000 onsdigital/census31-eq-questionnaire-launcher:latest
 ```
 
 You should then be able to access go launcher at `localhost:8000`
@@ -87,11 +87,11 @@ To deploy to a cluster you can run the following command
 * JWT spec based on http://ons-schema-definitions.readthedocs.io/en/latest/jwt_profile.html
 
 ### Settings
-Environment Variable | Meaning | Default
----------------------|---------|--------
-GO_LAUNCH_A_SURVEY_LISTEN_HOST|Host address  to listen on|0.0.0.0
-GO_LAUNCH_A_SURVEY_LISTEN_PORT|Host port to listen on|8000
-SURVEY_RUNNER_URL|URL of Survey Runner to re-direct to when launching a survey|http://localhost:5000
-SURVEY_REGISTER_URL|URL of eq-survey-register to load schema list from |http://localhost:8080
-JWT_ENCRYPTION_KEY_PATH|Path to the JWT Encryption Key (PEM format)|jwt-test-keys/sdc-user-authentication-encryption-sr-public-key.pem
-JWT_SIGNING_KEY_PATH|Path to the JWT Signing Key (PEM format)|jwt-test-keys/sdc-user-authentication-signing-launcher-private-key.pem
+| Environment Variable           | Meaning                                                      | Default                                                                |
+|--------------------------------|--------------------------------------------------------------|------------------------------------------------------------------------|
+| GO_LAUNCH_A_SURVEY_LISTEN_HOST | Host address  to listen on                                   | 0.0.0.0                                                                |
+| GO_LAUNCH_A_SURVEY_LISTEN_PORT | Host port to listen on                                       | 8000                                                                   |
+| SURVEY_RUNNER_URL              | URL of Survey Runner to re-direct to when launching a survey | http://localhost:5000                                                  |
+| SURVEY_REGISTER_URL            | URL of eq-survey-register to load schema list from           | http://localhost:8080                                                  |
+| JWT_ENCRYPTION_KEY_PATH        | Path to the JWT Encryption Key (PEM format)                  | jwt-test-keys/sdc-user-authentication-encryption-sr-public-key.pem     |
+| JWT_SIGNING_KEY_PATH           | Path to the JWT Signing Key (PEM format)                     | jwt-test-keys/sdc-user-authentication-signing-launcher-private-key.pem |
