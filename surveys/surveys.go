@@ -2,11 +2,9 @@ package surveys
 
 import (
 	"encoding/json"
-	"log"
-	"regexp"
-
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log"
 	"sort"
 	"strings"
 
@@ -44,8 +42,6 @@ type Schema struct {
 	jsonhal.Hal
 	Name string `json:"name"`
 }
-
-var eqIDFormTypeRegex = regexp.MustCompile(`^(?P<eq_id>[a-z0-9]+)_(?P<form_type>\w+)`)
 
 // LauncherSchemaFromFilename creates a LauncherSchema record from a schema filename
 func LauncherSchemaFromFilename(filename string) LauncherSchema {
@@ -103,7 +99,7 @@ func getAvailableSchemasFromRegister() []LauncherSchema {
 			return []LauncherSchema{}
 		}
 
-		responseBody, err := ioutil.ReadAll(resp.Body)
+		responseBody, err := io.ReadAll(resp.Body)
 		resp.Body.Close()
 		if err != nil {
 			return schemaList
@@ -154,7 +150,7 @@ func getAvailableSchemasFromRunner() []LauncherSchema {
 		return []LauncherSchema{}
 	}
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
 		return []LauncherSchema{}

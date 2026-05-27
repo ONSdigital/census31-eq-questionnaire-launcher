@@ -6,9 +6,10 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
@@ -58,7 +59,7 @@ type PrivateKeyResult struct {
 func loadEncryptionKey() (*PublicKeyResult, *KeyLoadError) {
 	encryptionKeyPath := settings.Get("JWT_ENCRYPTION_KEY_PATH")
 
-	keyData, err := ioutil.ReadFile(encryptionKeyPath)
+	keyData, err := os.ReadFile(encryptionKeyPath)
 	if err != nil {
 		return nil, &KeyLoadError{Op: "read", Err: "Failed to read encryption key from file: " + encryptionKeyPath}
 	}
@@ -81,7 +82,7 @@ func loadEncryptionKey() (*PublicKeyResult, *KeyLoadError) {
 
 func loadSigningKey() (*PrivateKeyResult, *KeyLoadError) {
 	signingKeyPath := settings.Get("JWT_SIGNING_KEY_PATH")
-	keyData, err := ioutil.ReadFile(signingKeyPath)
+	keyData, err := os.ReadFile(signingKeyPath)
 	if err != nil {
 		return nil, &KeyLoadError{Op: "read", Err: "Failed to read signing key from file: " + signingKeyPath}
 	}
@@ -184,7 +185,7 @@ func launcherSchemaFromURL(url string) (launcherSchema surveys.LauncherSchema, e
 		return launcherSchema, fmt.Sprintf("Failed to load Schema from %s", url)
 	}
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
 		panic(err)
@@ -245,7 +246,7 @@ func validateSchema(payload []byte) (error string) {
 		return err.Error()
 	}
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
 		return err.Error()
@@ -482,7 +483,7 @@ func GetRequiredMetadata(launcherSchema surveys.LauncherSchema) ([]Metadata, str
 		return nil, fmt.Sprintf("Failed to load Schema from %s", url)
 	}
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
 	if err != nil {
 		log.Print(err)
