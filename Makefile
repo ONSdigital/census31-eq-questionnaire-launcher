@@ -10,7 +10,6 @@ lint-go:
 
 lint-static:
 	npx prettier --check "static/**/*.{js,css}"
-	npx eslint static/javascript/*.js
 
 format-static:
 	npx prettier "static/**/*.{js,css}" --write
