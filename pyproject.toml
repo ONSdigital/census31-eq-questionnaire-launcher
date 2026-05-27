@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "Launcher"
+version = "1.0.0"
+description = "ONS Digital eQ Questionnaire Launcher"
+authors = ["ONSDigital"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python="^3.13"
+
+[tool.poetry.group.dev.dependencies]
+djlint = "^1.34.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
