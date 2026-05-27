@@ -14,3 +14,6 @@ djlint = "^1.34.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.djlint]
+ignore="H014,H015,H006,H029,H013,H005,H030,H031"
