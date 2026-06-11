@@ -8,7 +8,7 @@ Install Go and ensure that your `GOPATH` env variable is set (usually it's `~/go
 ```
 go get
 go build
-./eq-questionnaire-launcher
+./census31-eq-questionnaire-launcher
 
 go run launch.go (Does both the build and run cmd above)
 ```
@@ -25,13 +25,13 @@ docker build -t eq-questionnaire-launcher:latest .
 You can then run the image using `SURVEY_RUNNER_SCHEMA_URL` to point it at an instance of survey runner.
 
 ```
-docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 onsdigital/eq-questionnaire-launcher:latest
+docker run -e SURVEY_RUNNER_SCHEMA_URL=http://localhost:5000 -it -p 8000:8000 onsdigital/census31-eq-questionnaire-launcher:latest
 ```
 
 The syntax for this will be slightly different on Mac
 
 ```
-docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8000:8000 onsdigital/eq-questionnaire-launcher:latest
+docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8000:8000 onsdigital/census31-eq-questionnaire-launcher:latest
 ```
 
 You should then be able to access go launcher at `localhost:8000`
@@ -54,44 +54,51 @@ Now run Go launcher and navigate to "http://localhost:8000/quick-launch?url=" pa
 e.g."http://localhost:8000/quick-launch?url=http://localhost:7777/1_0001.json"
 ```
 
-### Deployment with [Helm](https://helm.sh/)
-
-To deploy this application with helm, you must have a kubernetes cluster already running and be logged into the cluster.
-
-Log in to the cluster using:
+## Commands for Formatting & Linting
+Ensure you are using the correct version of node using:
+``` shell
+nvm install
+nvm use
 ```
-gcloud container clusters get-credentials survey-runner --region <region> --project <gcp_project_id>
+To install ESLint and Prettier for formatting and linting of static files use:
+``` shell
+npm install
 ```
-
-You need to have Helm installed locally
-
-1. Install Helm with `brew install kubernetes-helm` and then run `helm init --client-only`
-
-1. Install Helm Tiller plugin for tillerless deploys `helm plugin install https://github.com/rimusz/helm-tiller`
-
----
-
-The following environment variables must be set when deploying the app.
-- RUNNER_URL
-- DOCKER_REGISTRY
-- IMAGE_TAG
-
-To deploy to a cluster you can run the following command
-
-```
-./k8s/deploy_app.sh
+Firstly, ensure you have Python & Poetry installed and then install djLint for formatting and linting template files using:
+```shell
+poetry install
 ```
 
-### Notes
+**Note**: Before being able to run `lint-go`,
+you will need to install the external tool `golangci-lint`. The command to install the tool is
+`brew install golangci-lint` and to upgrade it use `brew upgrade golangci-lint`. Visit
+https://golangci-lint.run/welcome/install/#local-installation to see additional ways to install the tool.
+
+| Command                 | Task                                                    |
+|-------------------------|---------------------------------------------------------|
+| `make format-static`    | Formats all static files (Javascipt and CSS)            |
+| `make format-templates` | Formats all HTML files and shows the changes to be made |
+| `make format-go`        | Formats all the Golang files                            |
+| `make format`           | Formats all files listed above                          |
+| `make lint-static`      | Lints all static files and reports any issues           |
+| `make lint-templates`   | Lints all HTML files and reports any issues             |
+| `make lint-go`          | Lints all Golang files using an external tool           |
+| `make lint`             | Lints all files listed above                            |
+
+
+## Design System
+To update the design system version, you need to update the version within the CDN link, they are present in both template files ([layout](templates/layout.html:11) and [launch](templates/launch.html:381))
+
+## Notes
 * There are no unit tests yet
 * JWT spec based on http://ons-schema-definitions.readthedocs.io/en/latest/jwt_profile.html
 
 ### Settings
-Environment Variable | Meaning | Default
----------------------|---------|--------
-GO_LAUNCH_A_SURVEY_LISTEN_HOST|Host address  to listen on|0.0.0.0
-GO_LAUNCH_A_SURVEY_LISTEN_PORT|Host port to listen on|8000
-SURVEY_RUNNER_URL|URL of Survey Runner to re-direct to when launching a survey|http://localhost:5000
-SURVEY_REGISTER_URL|URL of eq-survey-register to load schema list from |http://localhost:8080
-JWT_ENCRYPTION_KEY_PATH|Path to the JWT Encryption Key (PEM format)|jwt-test-keys/sdc-user-authentication-encryption-sr-public-key.pem
-JWT_SIGNING_KEY_PATH|Path to the JWT Signing Key (PEM format)|jwt-test-keys/sdc-user-authentication-signing-launcher-private-key.pem
+| Environment Variable           | Meaning                                                      | Default                                                                |
+|--------------------------------|--------------------------------------------------------------|------------------------------------------------------------------------|
+| GO_LAUNCH_A_SURVEY_LISTEN_HOST | Host address  to listen on                                   | 0.0.0.0                                                                |
+| GO_LAUNCH_A_SURVEY_LISTEN_PORT | Host port to listen on                                       | 8000                                                                   |
+| SURVEY_RUNNER_URL              | URL of Survey Runner to re-direct to when launching a survey | http://localhost:5000                                                  |
+| SURVEY_REGISTER_URL            | URL of eq-survey-register to load schema list from           | http://localhost:8080                                                  |
+| JWT_ENCRYPTION_KEY_PATH        | Path to the JWT Encryption Key (PEM format)                  | jwt-test-keys/sdc-user-authentication-encryption-sr-public-key.pem     |
+| JWT_SIGNING_KEY_PATH           | Path to the JWT Signing Key (PEM format)                     | jwt-test-keys/sdc-user-authentication-signing-launcher-private-key.pem |

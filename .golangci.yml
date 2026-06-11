@@ -1,0 +1,17 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  settings:
+    staticcheck:
+      checks:
+      - '-S1039' # unnecessary use of fmt.Sprintf
+      - '-S1023' # redundant return statement
+      - '-SA4006' # this value of claims is never used
+      - '-QF1004' # could use strings.ReplaceAll instead
+      - '-ST1013' # should use constant http.StatusFound instead of numeric literal
+  disable:
+    - ineffassign
+    - errcheck

@@ -10,6 +10,6 @@ var httpClient = &http.Client{
 }
 
 // GetHTTPClient returns a single HttpClient for use across the app
-func GetHTTPClient() (*http.Client)  {
+func GetHTTPClient() *http.Client {
 	return httpClient
 }

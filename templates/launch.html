@@ -1,144 +1,159 @@
-{{define "title"}}Launch a Survey{{end}}
-
-{{define "body"}}
+{{ define "title" }}Launch a Survey{{ end }}
+{{ define "body" }}
 <h1>Launch a survey</h1>
 <div class="field-wrap">
-
-<form action="" method="POST" xmlns="http://www.w3.org/1999/html">
-
-    <div class="field-container">
-        <label for="schema_name">Schemas</label>
-        <select id="schema_name" name="schema_name" class="qa-select-schema" onchange="loadMetadata()">
-            <option selected disabled>Select Schema</option>
-            <optgroup label="Business Surveys">
-                {{range .Schemas.Business}}
+    <form action="" method="POST" xmlns="http://www.w3.org/1999/html">
+        <div class="field-container">
+            <label for="schema_name">Schemas</label>
+            <select id="schema_name"
+                    name="schema_name"
+                    class="qa-select-schema"
+                    onchange="loadMetadata()">
+                <option selected disabled>Select Schema</option>
+                <optgroup label="Business Surveys">
+                    {{ range .Schemas.Business }}
                     <option name="{{.Name}}" value="{{.Name}}">{{.Name}}</option>
-                {{end}}
-            </optgroup>
-            <optgroup label="CCS Surveys">
-                {{range .Schemas.CCS}}
+                    {{ end }}
+                </optgroup>
+                <optgroup label="CCS Surveys">
+                    {{ range .Schemas.CCS }}
                     <option name="{{.Name}}" value="{{.Name}}">{{.Name}}</option>
-                {{end}}
-            </optgroup>
-            <optgroup label="Census Surveys">
-                {{range .Schemas.Census}}
+                    {{ end }}
+                </optgroup>
+                <optgroup label="Census Surveys">
+                    {{ range .Schemas.Census }}
                     <option name="{{.Name}}" value="{{.Name}}">{{.Name}}</option>
-                {{end}}
-            </optgroup>
-            <optgroup label="Social Surveys">
-                {{range .Schemas.Social}}
+                    {{ end }}
+                </optgroup>
+                <optgroup label="Social Surveys">
+                    {{ range .Schemas.Social }}
                     <option name="{{.Name}}" value="{{.Name}}">{{.Name}}</option>
-                {{end}}
-            </optgroup>
-            <optgroup label="Test Surveys">
-                {{range .Schemas.Test}}
+                    {{ end }}
+                </optgroup>
+                <optgroup label="Test Surveys">
+                    {{ range .Schemas.Test }}
                     <option name="{{.Name}}" value="{{.Name}}">{{.Name}}</option>
-                {{end}}
-            </optgroup>
-            <optgroup label="Other Surveys">
-                {{range .Schemas.Other}}
+                    {{ end }}
+                </optgroup>
+                <optgroup label="Other Surveys">
+                    {{ range .Schemas.Other }}
                     <option name="{{.Name}}" value="{{.Name}}">{{.Name}}</option>
-                {{end}}
-            </optgroup>
-        </select>
-    </div>
-
-    <div id="census_claims">
-    </div>
-
-    <h3>Survey Metadata</h3>
-    <div id="survey_metadata">
-        <p>--- Metadata fields will be loaded when you select a schema ---</p>
-    </div>
-
-    <h3>Required Data</h3>
-
-    <div class="field-container">
-        <label for="ru_ref">RU Ref</label>
-        <span>
-            <input id="ru_ref" name="ru_ref" type="text" class="qa-ru-ref">
-            <img onclick="ruref('ru_ref')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
-        </span>
-    </div>
-
-    <div class="field-container">
-        <label for="questionnaire_id">Questionnnaire ID</label>
-        <span>
-            <input id="questionnaire_id" name="questionnaire_id" type="text" class="qa-questionnaire_id">
-            <img onclick="numericId('questionnaire_id')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
-        </span>
-    </div>
-
-    <div class="field-container">
-        <label for="case_id">Case ID</label>
-        <span>
-            <input id="case_id" name="case_id" type="text" class="qa-case_id">
-            <img onclick="uuid('case_id')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
-        </span>
-    </div>
-
-    <div class="field-container">
-        <label for="response_id">Response ID</label>
-        <span>
-            <input id="response_id" name="response_id" type="text" class="qa-response_id">
-            <img onclick="numericId('response_id')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
-        </span>
-    </div>
-
-    <div class="field-container">
-        <label for="collection_exercise_sid">Collection Exercise SID</label>
-        <span>
-            <input id="collection_exercise_sid" name="collection_exercise_sid" type="text" class="qa-collection-sid">
-            <img onclick="uuid('collection_exercise_sid')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
-        </span>
-    </div>
-
-    <h3>Runner Data</h3>
-    <div class="field-container">
-        <label for="exp">Token Expiry (seconds)</label>
-        <input id="exp" name="exp" type="text" value="1800" class="qa-token-expiry">
-    </div>
-
-    <div class="field-container">
-        <label for="language_code">Language</label>
-        <select id="language_code" name="language_code" class="qa-language-code">
-            <option name="en" value="en">English (en)</option>
-            <option name="cy" value="cy">Cymraeg (cy)</option>
-            <option name="ga" value="ga">Gaeilge (ga)</option>
-            <option name="eo" value="eo">Ulstér Scotch (eo)</option>
-            <option name="" value="">&lt;not set&gt;</option>
-        </select>
-    </div>
-
-    <div class="field-container">
-        <label for="roles">Roles</label>
-        <select id="roles" name="roles" multiple="multiple" class="qa-roles">
-            <option name="flusher" value="flusher">flusher</option>
-            <option name="dumper" value="dumper" selected="selected">dumper</option>
-        </select>
-    </div>
-
-    <div class="field-container">
-        <label for="account_service_url">Account Service URL</label>
-        <input id="account_service_url" name="account_service_url" type="text" value="{{.AccountServiceURL}}" class="qa-account_service_url">
-    </div>
-
-    <div class="field-container">
-        <label for="account_service_log_out_url">Account Service Log Out URL</label>
-        <input id="account_service_log_out_url" name="account_service_log_out_url" type="text" value="{{.AccountServiceLogOutURL}}" class="qa-account_service_log_out_url">
-    </div>
-
-    <div class="field-container">
-        <input type="submit" name="action_launch" value="Open Survey" class="qa-btn-submit-dev btn" id="submit-btn" disabled="disabled"/>
-        <input type="submit" name="action_flush" value="Flush Survey Data" class="qa-btn-submit-dev btn" id="flush-btn" disabled="disabled"/>
-    </div>
-
-</form>
+                    {{ end }}
+                </optgroup>
+            </select>
+        </div>
+        <div id="census_claims"></div>
+        <h3>Survey Metadata</h3>
+        <div id="survey_metadata">
+            <p>--- Metadata fields will be loaded when you select a schema ---</p>
+        </div>
+        <h3>Required Data</h3>
+        <div class="field-container">
+            <label for="ru_ref">RU Ref</label>
+            <span>
+                <input id="ru_ref" name="ru_ref" type="text" class="qa-ru-ref">
+                <img onclick="ruref('ru_ref')"
+                     src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
+            </span>
+        </div>
+        <div class="field-container">
+            <label for="questionnaire_id">Questionnnaire ID</label>
+            <span>
+                <input id="questionnaire_id"
+                       name="questionnaire_id"
+                       type="text"
+                       class="qa-questionnaire_id">
+                <img onclick="numericId('questionnaire_id')"
+                     src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
+            </span>
+        </div>
+        <div class="field-container">
+            <label for="case_id">Case ID</label>
+            <span>
+                <input id="case_id" name="case_id" type="text" class="qa-case_id">
+                <img onclick="uuid('case_id')"
+                     src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
+            </span>
+        </div>
+        <div class="field-container">
+            <label for="response_id">Response ID</label>
+            <span>
+                <input id="response_id"
+                       name="response_id"
+                       type="text"
+                       class="qa-response_id">
+                <img onclick="numericId('response_id')"
+                     src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
+            </span>
+        </div>
+        <div class="field-container">
+            <label for="collection_exercise_sid">Collection Exercise SID</label>
+            <span>
+                <input id="collection_exercise_sid"
+                       name="collection_exercise_sid"
+                       type="text"
+                       class="qa-collection-sid">
+                <img onclick="uuid('collection_exercise_sid')"
+                     src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">
+            </span>
+        </div>
+        <h3>Runner Data</h3>
+        <div class="field-container">
+            <label for="exp">Token Expiry (seconds)</label>
+            <input id="exp" name="exp" type="text" value="1800" class="qa-token-expiry">
+        </div>
+        <div class="field-container">
+            <label for="language_code">Language</label>
+            <select id="language_code" name="language_code" class="qa-language-code">
+                <option name="en" value="en">English (en)</option>
+                <option name="cy" value="cy">Cymraeg (cy)</option>
+                <option name="ga" value="ga">Gaeilge (ga)</option>
+                <option name="eo" value="eo">Ulstér Scotch (eo)</option>
+                <option name="" value="">&lt;not set&gt;</option>
+            </select>
+        </div>
+        <div class="field-container">
+            <label for="roles">Roles</label>
+            <select id="roles" name="roles" multiple="multiple" class="qa-roles">
+                <option name="flusher" value="flusher">flusher</option>
+                <option name="dumper" value="dumper" selected="selected">dumper</option>
+            </select>
+        </div>
+        <div class="field-container">
+            <label for="account_service_url">Account Service URL</label>
+            <input id="account_service_url"
+                   name="account_service_url"
+                   type="text"
+                   value="{{.AccountServiceURL}}"
+                   class="qa-account_service_url">
+        </div>
+        <div class="field-container">
+            <label for="account_service_log_out_url">Account Service Log Out URL</label>
+            <input id="account_service_log_out_url"
+                   name="account_service_log_out_url"
+                   type="text"
+                   value="{{.AccountServiceLogOutURL}}"
+                   class="qa-account_service_log_out_url">
+        </div>
+        <div class="field-container">
+            <input type="submit"
+                   name="action_launch"
+                   value="Open Survey"
+                   class="qa-btn-submit-dev btn"
+                   id="submit-btn"
+                   disabled="disabled" />
+            <input type="submit"
+                   name="action_flush"
+                   value="Flush Survey Data"
+                   class="qa-btn-submit-dev btn"
+                   id="flush-btn"
+                   disabled="disabled" />
+        </div>
+    </form>
 </div>
-
 <script>
     // uuidv4: from https://github.com/kelektiv/node-uuid
-    !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var n;n="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,n.uuidv4=e()}}(function(){return function e(n,r,o){function t(f,u){if(!r[f]){if(!n[f]){var a="function"==typeof require&&require;if(!u&&a)return a(f,!0);if(i)return i(f,!0);var d=new Error("Cannot find module '"+f+"'");throw d.code="MODULE_NOT_FOUND",d}var p=r[f]={exports:{}};n[f][0].call(p.exports,function(e){var r=n[f][1][e];return t(r?r:e)},p,p.exports,e,n,r,o)}return r[f].exports}for(var i="function"==typeof require&&require,f=0;f<o.length;f++)t(o[f]);return t}({1:[function(e,n,r){function o(e,n){var r=n||0,o=t;return[o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]]].join("")}for(var t=[],i=0;i<256;++i)t[i]=(i+256).toString(16).substr(1);n.exports=o},{}],2:[function(e,n,r){var o="undefined"!=typeof crypto&&crypto.getRandomValues&&crypto.getRandomValues.bind(crypto)||"undefined"!=typeof msCrypto&&"function"==typeof window.msCrypto.getRandomValues&&msCrypto.getRandomValues.bind(msCrypto);if(o){var t=new Uint8Array(16);n.exports=function(){return o(t),t}}else{var i=new Array(16);n.exports=function(){for(var e,n=0;n<16;n++)0===(3&n)&&(e=4294967296*Math.random()),i[n]=e>>>((3&n)<<3)&255;return i}}},{}],3:[function(e,n,r){function o(e,n,r){var o=n&&r||0;"string"==typeof e&&(n="binary"===e?new Array(16):null,e=null),e=e||{};var f=e.random||(e.rng||t)();if(f[6]=15&f[6]|64,f[8]=63&f[8]|128,n)for(var u=0;u<16;++u)n[o+u]=f[u];return n||i(f)}var t=e("./lib/rng"),i=e("./lib/bytesToUuid");n.exports=o},{"./lib/bytesToUuid":1,"./lib/rng":2}]},{},[3])(3)});
+    !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var n;n="undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this,n.uuidv4=e()}}(function(){return function e(n,r,o){function t(f,u){if(!r[f]){if(!n[f]){var a="function"==typeof require&&require;if(!u&&a)return a(f,!0);if(i)return i(f,!0);var d=new Error("Cannot find module '"+f+"'");throw d.code="MODULE_NOT_FOUND",d}var p=r[f]={exports:{}};n[f][0].call(p.exports,function(e){var r=n[f][1][e];return t(r?r:e)},p,p.exports,e,n,r,o)}return r[f].exports}for(var i="function"==typeof require&&require,f=0;f<o.length;f++)t(o[f]);return t}({1:[function(e,n,r){function o(e,n){var r=n||0,o=t;return[o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],"-",o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]],o[e[r++]]].join("")}for(var t=[],i=0;i<256;++i)t[i]=(i+256).toString(16).substr(1);n.exports=o},{}],2:[function(e,n,r){var o="undefined"!=typeof crypto&&crypto.getRandomValues&&crypto.getRandomValues.bind(crypto)||"undefined"!=typeof msCrypto&&"function"==typeof window.msCrypto.getRandomValues&&msCrypto.getRandomValues.bind(msCrypto);if(o){var t=new Uint8Array(16);n.exports=function(){return o(t),t}}else{var i=new Array(16);n.exports=function(){for(var e,n=0;n<16;n++)0===(3&n)&&(e=4294967296*Math.random()),i [n]=e>>>((3&n)<<3)&255;return i}}},{}],3:[function(e,n,r){function o(e,n,r){var o=n&&r||0;"string"==typeof e&&(n="binary"===e?new Array(16):null,e=null),e=e||{};var f=e.random||(e.rng||t)();if(f[6]=15&f[6]|64,f[8]=63&f[8]|128,n)for(var u=0;u<16;++u)n[o+u]=f[u];return n||i(f)}var t=e("./lib/rng"),i=e("./lib/bytesToUuid");n.exports=o},{"./lib/bytesToUuid":1,"./lib/rng":2}]},{},[3])(3)});
 
     const schema_name_census_regex = /^(census|ccs)_(household|individual|communal_establishment)_(gb_[a-z]{3})\s*$/
     const form_types = {
@@ -290,5 +305,4 @@
     numericId('questionnaire_id');
 
 </script>
-
-{{end}}
+{{ end }}
