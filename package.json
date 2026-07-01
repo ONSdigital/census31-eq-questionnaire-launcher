@@ -31,5 +31,13 @@
             "no-unused-vars": "off",
             "no-undef": "off"
         }
+    },
+    "standard": {
+        "env": [
+            "browser"
+        ],
+        "globals": [
+            "sdsEnabled"
+        ]
     }
 }

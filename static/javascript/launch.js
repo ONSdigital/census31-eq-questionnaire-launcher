@@ -1,97 +1,31 @@
-// uuidv4: from https://github.com/kelektiv/node-uuid
 function escapeHtml (unsafe) {
   return unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
 }
 
-!(function (e) {
-  if (typeof exports === 'object' && typeof module !== 'undefined') module.exports = e()
-  else if (typeof define === 'function' && define.amd) define([], e)
-  else {
-    let n;
-    (n = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : this), (n.uuidv4 = e())
-  }
-})(function () {
-  return (function e (n, r, o) {
-    function t (f, u) {
-      if (!r[f]) {
-        if (!n[f]) {
-          const a = typeof require === 'function' && require
-          if (!u && a) return a(f, !0)
-          if (i) return i(f, !0)
-          const d = new Error("Cannot find module '" + f + "'")
-          throw ((d.code = 'MODULE_NOT_FOUND'), d)
-        }
-        const p = (r[f] = { exports: {} })
-        n[f][0].call(
-          p.exports,
-          function (e) {
-            const r = n[f][1][e]
-            return t(r || e)
-          },
-          p,
-          p.exports,
-          e,
-          n,
-          r,
-          o
-        )
-      }
-      return r[f].exports
+function uuidv4 () {
+  if (typeof crypto !== 'undefined') {
+    if (typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID()
     }
-    for (var i = typeof require === 'function' && require, f = 0; f < o.length; f++) t(o[f])
-    return t
-  })(
-    {
-      1: [
-        function (e, n, r) {
-          function o (e, n) {
-            let r = n || 0
-            const o = t
-            return [o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]], '-', o[e[r++]], o[e[r++]], '-', o[e[r++]], o[e[r++]], '-', o[e[r++]], o[e[r++]], '-', o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]]].join('')
-          }
-          for (var t = [], i = 0; i < 256; ++i) t[i] = (i + 256).toString(16).substring(1)
-          n.exports = o
-        },
-        {}
-      ],
-      2: [
-        function (e, n, r) {
-          const o = (typeof crypto !== 'undefined' && crypto.getRandomValues?.bind(crypto)) || (typeof msCrypto !== 'undefined' && typeof window.msCrypto.getRandomValues === 'function' && msCrypto.getRandomValues.bind(msCrypto))
-          if (o) {
-            const t = new Uint8Array(16)
-            n.exports = function () {
-              return o(t), t
-            }
-          } else {
-            const i = new Array(16)
-            n.exports = function () {
-              for (var e, n = 0; n < 16; n++) (3 & n) === 0 && (e = 4294967296 * Math.random()), (i[n] = (e >>> ((3 & n) << 3)) & 255)
-              return i
-            }
-          }
-        },
-        {}
-      ],
-      3: [
-        function (e, n, r) {
-          function o (e, n, r) {
-            const o = (n && r) || 0
-            typeof e === 'string' && ((n = e === 'binary' ? new Array(16) : null), (e = null)), (e = e || {})
-            const f = e.random || (e.rng || t)()
-            if (((f[6] = (15 & f[6]) | 64), (f[8] = (63 & f[8]) | 128), n)) for (let u = 0; u < 16; ++u) n[o + u] = f[u]
-            return n || i(f)
-          }
-          var t = e('./lib/rng')
-          var i = e('./lib/bytesToUuid')
-          n.exports = o
-        },
-        { './lib/bytesToUuid': 1, './lib/rng': 2 }
-      ]
-    },
-    {},
-    [3]
-  )(3)
-})
+
+    if (typeof crypto.getRandomValues === 'function') {
+      const bytes = new Uint8Array(16)
+      crypto.getRandomValues(bytes)
+
+      bytes[6] = (bytes[6] & 0x0f) | 0x40
+      bytes[8] = (bytes[8] & 0x3f) | 0x80
+
+      const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0'))
+      return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`
+    }
+  }
+
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
+    const randomNibble = Math.floor(Math.random() * 16)
+    const value = char === 'x' ? randomNibble : (randomNibble & 0x3) | 0x8
+    return value.toString(16)
+  })
+}
 
 // store fetch so it only needs to be re-done if the survey changes
 let supplementaryDataSets = null
@@ -124,21 +58,21 @@ function toggleLoadMetadataButton () {
   }
 }
 
-function setSurveyType (event) {
+function setSurveyType () {
   surveyType = remoteSchemaSurveyType.value
   localStorage.setItem('survey_type', surveyType)
   setLaunchType('remote')
   toggleLoadMetadataButton()
 }
 
-function setSchemaUrl (event) {
+function setSchemaUrl () {
   schemaUrl = document.querySelector('#remote-schema-url').value
   localStorage.setItem('schema_url', schemaUrl)
   setLaunchType('url')
   toggleLoadMetadataButton()
 }
 
-function setCirSchema (event) {
+function setCirSchema () {
   cirSchema = document.querySelector('#cir-schemas').value
   localStorage.setItem('cir_schema', cirSchema)
   setLaunchType('cir')
@@ -208,10 +142,10 @@ function disableButtons (buttons) {
   }
 }
 
-function includeSurveyMetadataFields (schema_name, survey_type) {
-  const formTypeValue = schema_name.split('_').slice(1).join('_')
+function includeSurveyMetadataFields (schemaName, surveyTypeName) {
+  const formTypeValue = schemaName.split('_').slice(1).join('_')
   document.querySelector('#survey-type-metadata-accordion').classList.remove('ons-u-vh')
-  document.querySelector('.survey_heading').innerHTML = `${escapeHtml(survey_type)} Survey Metadata`
+  document.querySelector('.survey_heading').innerHTML = `${escapeHtml(surveyTypeName)} Survey Metadata`
 
   const surveyMetadataFields = document.querySelector('#survey_metadata_fields')
   const div = document.createElement('div')
@@ -281,11 +215,11 @@ function loadMetadataForRemoteSchema () {
   enableButtons([launchButton, flushButton])
 }
 
-function loadSurveyMetadata (schema_name, survey_type) {
-  if (survey_type.toLowerCase() === 'test' || survey_type.toLowerCase() === 'social') {
+function loadSurveyMetadata (schemaName, surveyTypeName) {
+  if (surveyTypeName.toLowerCase() === 'test' || surveyTypeName.toLowerCase() === 'social') {
     clearSurveyMetadataFields()
   } else {
-    includeSurveyMetadataFields(schema_name, survey_type)
+    includeSurveyMetadataFields(schemaName, surveyTypeName)
   }
 }
 
@@ -298,7 +232,7 @@ async function getDataAsync (queryParam) {
           resolve(JSON.parse(this.responseText))
         } else {
           alert(`Request failed. ${this.responseText}`)
-          reject(`Request failed. ${this.responseText}`)
+          reject(new Error(`Request failed. ${this.responseText}`))
         }
       }
     }
@@ -325,8 +259,8 @@ function getInputField (fieldName, type, defaultValue = null, isReadOnly = false
 
 async function loadSDSDatasetMetadata (surveyId, periodId, sdsEnabled) {
   if (surveyId && periodId && sdsEnabled) {
-    const sds_dataset_metadata_url = `/supplementary-data?survey_id=${surveyId}&period_id=${periodId}`
-    return await getDataAsync(sds_dataset_metadata_url)
+    const sdsDatasetMetadataUrl = `/supplementary-data?survey_id=${surveyId}&period_id=${periodId}`
+    return await getDataAsync(sdsDatasetMetadataUrl)
   }
   return null
 }
@@ -355,10 +289,10 @@ function updateSDSDropdown (sdsEnabled) {
   const periodId = document.getElementById('period_id')?.value
   const sdsDatasetIdElement = document.querySelector('#sds_dataset_id')
   loadSDSDatasetMetadata(surveyId, periodId, sdsEnabled)
-    .then((sds_metadata_response) => {
-      if (sds_metadata_response?.length) {
+    .then((sdsMetadataResponse) => {
+      if (sdsMetadataResponse?.length) {
         document.querySelector('#supplementary_data').innerHTML = ''
-        supplementaryDataSets = sds_metadata_response
+        supplementaryDataSets = sdsMetadataResponse
         showMetadataAccordion('sds', true)
         setTabIndex('sds_metadata_detail', 0)
         enableButtons([launchButton, flushButton])
@@ -368,7 +302,7 @@ function updateSDSDropdown (sdsEnabled) {
           supplementaryDataSection.innerHTML = `<div class="ons-field ons-field--inline">${getLabelFor('sds_dataset_id')}<select id="sds_dataset_id" name="sds_dataset_id" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select></div>`
         }
 
-        document.querySelector('#sds_dataset_id').innerHTML = sds_metadata_response.map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`).join('')
+        document.querySelector('#sds_dataset_id').innerHTML = sdsMetadataResponse.map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`).join('')
         loadSupplementaryDataInfo()
       } else if (document.querySelector('#sds_dataset_id')) {
         document.querySelector('#sds_dataset_id').innerHTML = ''
@@ -381,27 +315,27 @@ function updateSDSDropdown (sdsEnabled) {
 }
 
 function loadSchemaMetadata (schemaName, schemaUrl, cirInstrumentId) {
-  let survey_data_url = '/survey-data?'
+  let surveyDataUrl = '/survey-data?'
 
   if (cirInstrumentId) {
-    survey_data_url += `&cir_instrument_id=${cirInstrumentId}`
+    surveyDataUrl += `&cir_instrument_id=${cirInstrumentId}`
   } else {
     showMetadataAccordion('cir', false)
     setTabIndex('cir_metadata_detail', -1)
-    if (schemaName) survey_data_url += `&schema_name=${schemaName}`
-    if (schemaUrl) survey_data_url += `&schema_url=${schemaUrl}`
+    if (schemaName) surveyDataUrl += `&schema_name=${schemaName}`
+    if (schemaUrl) surveyDataUrl += `&schema_url=${schemaUrl}`
   }
   showMetadataAccordion('sds', false)
   setTabIndex('sds_metadata_detail', -1)
-  getDataAsync(survey_data_url)
-    .then((schema_response) => {
+  getDataAsync(surveyDataUrl)
+    .then((schemaResponse) => {
       document.querySelector('#survey_metadata').innerHTML = ''
 
       // We always need survey_id from top-level schema metadata for SDS retrieval
-      schemaSurveyId = schema_response.survey_id
+      schemaSurveyId = schemaResponse.survey_id
 
-      if (schema_response.metadata.length > 0) {
-        document.querySelector('#survey_metadata').innerHTML = schema_response.metadata
+      if (schemaResponse.metadata.length > 0) {
+        document.querySelector('#survey_metadata').innerHTML = schemaResponse.metadata
           .map((metadataField) => {
             const fieldName = metadataField.name
             const defaultValue = metadataField.default
@@ -412,7 +346,7 @@ function loadSchemaMetadata (schemaName, schemaUrl, cirInstrumentId) {
               } else if (metadataField.type === 'uuid') {
                 return `<span>${getInputField(fieldName, 'text', uuidv4())}` + `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` + '</span>'
               } else if (fieldName === 'survey_id' || fieldName === 'period_id') {
-                return getInputField(fieldName, 'text', fieldName === 'survey_id' ? schema_response.survey_id : defaultValue, false, 'updateSDSDropdown(sdsEnabled)')
+                return getInputField(fieldName, 'text', fieldName === 'survey_id' ? schemaResponse.survey_id : defaultValue, false, 'updateSDSDropdown(sdsEnabled)')
               } else if (fieldName === 'sds_dataset_id') {
                 return `<select id="${fieldName}" name="${fieldName}" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select>`
               } else {
@@ -445,12 +379,12 @@ function loadSupplementaryDataInfo () {
   const sdsMetadataField = (key) => `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, 'text', selectedDataset[key], true)}</div>`
 
   const supplementaryDataFields = document.createRange().createContextualFragment(sdsDatasetMetadataKeys.map(sdsMetadataField).join(''))
-  supplementaryDataSection.querySelectorAll('.ons-field[data-sds-metadata-key]').forEach((sds_value) => sds_value.remove())
+  supplementaryDataSection.querySelectorAll('.ons-field[data-sds-metadata-key]').forEach((sdsValue) => sdsValue.remove())
   supplementaryDataSection.appendChild(supplementaryDataFields)
 }
 
-function uuid (el_id) {
-  document.querySelector(`#${el_id}`).value = uuidv4()
+function uuid (elementId) {
+  document.querySelector(`#${elementId}`).value = uuidv4()
 }
 
 function numericId () {
@@ -462,9 +396,9 @@ function numericId () {
   document.querySelector('#response_id').value = result
 }
 
-function setResponseExpiry (days_offset = 7) {
+function setResponseExpiry (daysOffset = 7) {
   const dt = new Date()
-  dt.setDate(dt.getDate() + days_offset)
+  dt.setDate(dt.getDate() + daysOffset)
   document.querySelector('#response_expires_at').value = dt
     .toISOString()
     .replace(/(\.\d*)/, '')
@@ -537,7 +471,7 @@ function setTabIndex (metadataDetail, value) {
 
 function initialiseTabIndex () {
   const details = ['cir_metadata_detail', 'survey_type_metadata_detail', 'sds_metadata_detail']
-  for (i = 0; i < details.length; i++) {
+  for (let i = 0; i < details.length; i++) {
     document.getElementById(details[i]).tabIndex = -1
   }
 }
@@ -550,19 +484,43 @@ function onLoad () {
   retrieveResponseId()
   initialiseTabIndex()
 
-  if ((schemaName = localStorage.getItem('schema_name'))) {
-    populateDropDownWithValue('#schema_name', schemaName)
+  const storedSchemaName = localStorage.getItem('schema_name')
+  if (storedSchemaName) {
+    populateDropDownWithValue('#schema_name', storedSchemaName)
     loadMetadataForSchemaName()
   } else {
-    if ((surveyType = localStorage.getItem('survey_type'))) {
+    const storedSurveyType = localStorage.getItem('survey_type')
+    if (storedSurveyType) {
+      surveyType = storedSurveyType
       populateDropDownWithValue('#remote-schema-survey-type', surveyType)
     }
-    if ((cirSchema = localStorage.getItem('cir_schema'))) {
+    const storedCirSchema = localStorage.getItem('cir_schema')
+    if (storedCirSchema) {
+      cirSchema = storedCirSchema
       populateDropDownWithValue('#cir-schemas', cirSchema)
     }
-    if ((schemaUrl = localStorage.getItem('schema_url'))) {
+    const storedSchemaUrl = localStorage.getItem('schema_url')
+    if (storedSchemaUrl) {
+      schemaUrl = storedSchemaUrl
       document.querySelector('#remote-schema-url').value = schemaUrl
     }
     toggleLoadMetadataButton()
   }
 }
+
+window.clearLocalStorage = clearLocalStorage
+window.loadMetadataForRemoteSchema = loadMetadataForRemoteSchema
+window.loadMetadataForSchemaName = loadMetadataForSchemaName
+window.loadResponseId = loadResponseId
+window.loadSupplementaryDataInfo = loadSupplementaryDataInfo
+window.numericId = numericId
+window.onLoad = onLoad
+window.saveResponseId = saveResponseId
+window.setCirSchema = setCirSchema
+window.setLaunchType = setLaunchType
+window.setResponseExpiry = setResponseExpiry
+window.setSchemaUrl = setSchemaUrl
+window.setSurveyType = setSurveyType
+window.updateSDSDropdown = updateSDSDropdown
+window.uuid = uuid
+window.validateForm = validateForm
