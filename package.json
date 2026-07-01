@@ -10,10 +10,7 @@
         "type": "git",
         "url": "https://github.com/ONSdigital/census31-eq-questionnaire-launcher"
     },
-    "devDependencies": {
-        "eslint": "8.57.0",
-        "prettier": "3.2.5"
-    },
+    "devDependencies": {},
     "prettier": {
         "printWidth": 160
     },

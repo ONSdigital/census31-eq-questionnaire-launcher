@@ -59,10 +59,7 @@ Ensure you are using the correct version of node using:
 nvm install
 nvm use
 ```
-To install ESLint and Prettier for formatting and linting of static files use:
-``` shell
-npm install
-```
+
 Firstly, ensure you have Python & Poetry installed and then install djLint for formatting and linting template files using:
 ```shell
 poetry install
@@ -75,14 +72,10 @@ you will need to install the external tool `golangci-lint`. The command to insta
 
 | Command                 | Task                                                    |
 |-------------------------|---------------------------------------------------------|
-| `make format-static`    | Formats all static files (Javascipt and CSS)            |
+| `make format-static`    | Formats all static files (Javascript and CSS)           |
 | `make format-templates` | Formats all HTML files and shows the changes to be made |
 | `make format-go`        | Formats all the Golang files                            |
 | `make format`           | Formats all files listed above                          |
-| `make lint-static`      | Lints all static files and reports any issues           |
-| `make lint-templates`   | Lints all HTML files and reports any issues             |
-| `make lint-go`          | Lints all Golang files using an external tool           |
-| `make lint`             | Lints all files listed above                            |
 
 
 ## Design System
