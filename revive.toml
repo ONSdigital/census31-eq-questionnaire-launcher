@@ -1,0 +1,37 @@
+ignoreGeneratedHeader = true
+severity = "warning"
+confidence = 0.8
+errorCode = 1
+warningCode = 0
+
+[rule.blank-imports]
+[rule.context-as-argument]
+[rule.context-keys-type]
+[rule.dot-imports]
+[rule.error-return]
+[rule.error-strings]
+[rule.error-naming]
+[rule.increment-decrement]
+[rule.range]
+[rule.receiver-naming]
+[rule.superfluous-else]
+[rule.time-naming]
+[rule.unexported-return]
+[rule.unreachable-code]
+[rule.waitgroup-by-value]
+
+# Project-specific relaxations to avoid large renaming/doc churn.
+[rule.exported]
+Disabled = true
+
+[rule.package-comments]
+Disabled = true
+
+[rule.var-naming]
+Disabled = true
+
+[rule.redefines-builtin-id]
+Disabled = true
+
+[rule.unused-parameter]
+Disabled = true

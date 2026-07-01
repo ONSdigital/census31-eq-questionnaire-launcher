@@ -1,28 +1,14 @@
 // uuidv4: from https://github.com/kelektiv/node-uuid
 function escapeHtml(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
 !(function (e) {
-  if ("object" == typeof exports && "undefined" != typeof module)
-    module.exports = e();
+  if ("object" == typeof exports && "undefined" != typeof module) module.exports = e();
   else if ("function" == typeof define && define.amd) define([], e);
   else {
     var n;
-    (n =
-      "undefined" != typeof window
-        ? window
-        : "undefined" != typeof global
-          ? global
-          : "undefined" != typeof self
-            ? self
-            : this),
-      (n.uuidv4 = e());
+    (n = "undefined" != typeof window ? window : "undefined" != typeof global ? global : "undefined" != typeof self ? self : this), (n.uuidv4 = e());
   }
 })(function () {
   return (function e(n, r, o) {
@@ -52,12 +38,7 @@ function escapeHtml(unsafe) {
       }
       return r[f].exports;
     }
-    for (
-      var i = "function" == typeof require && require, f = 0;
-      f < o.length;
-      f++
-    )
-      t(o[f]);
+    for (var i = "function" == typeof require && require, f = 0; f < o.length; f++) t(o[f]);
     return t;
   })(
     {
@@ -66,43 +47,16 @@ function escapeHtml(unsafe) {
           function o(e, n) {
             var r = n || 0,
               o = t;
-            return [
-              o[e[r++]],
-              o[e[r++]],
-              o[e[r++]],
-              o[e[r++]],
-              "-",
-              o[e[r++]],
-              o[e[r++]],
-              "-",
-              o[e[r++]],
-              o[e[r++]],
-              "-",
-              o[e[r++]],
-              o[e[r++]],
-              "-",
-              o[e[r++]],
-              o[e[r++]],
-              o[e[r++]],
-              o[e[r++]],
-              o[e[r++]],
-              o[e[r++]],
-            ].join("");
+            return [o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]], "-", o[e[r++]], o[e[r++]], "-", o[e[r++]], o[e[r++]], "-", o[e[r++]], o[e[r++]], "-", o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]], o[e[r++]]].join("");
           }
-          for (var t = [], i = 0; i < 256; ++i)
-            t[i] = (i + 256).toString(16).substring(1);
+          for (var t = [], i = 0; i < 256; ++i) t[i] = (i + 256).toString(16).substring(1);
           n.exports = o;
         },
         {},
       ],
       2: [
         function (e, n, r) {
-          var o =
-            ("undefined" != typeof crypto &&
-              crypto.getRandomValues?.bind(crypto)) ||
-            ("undefined" != typeof msCrypto &&
-              "function" == typeof window.msCrypto.getRandomValues &&
-              msCrypto.getRandomValues.bind(msCrypto));
+          var o = ("undefined" != typeof crypto && crypto.getRandomValues?.bind(crypto)) || ("undefined" != typeof msCrypto && "function" == typeof window.msCrypto.getRandomValues && msCrypto.getRandomValues.bind(msCrypto));
           if (o) {
             var t = new Uint8Array(16);
             n.exports = function () {
@@ -111,9 +65,7 @@ function escapeHtml(unsafe) {
           } else {
             var i = new Array(16);
             n.exports = function () {
-              for (var e, n = 0; n < 16; n++)
-                0 === (3 & n) && (e = 4294967296 * Math.random()),
-                  (i[n] = (e >>> ((3 & n) << 3)) & 255);
+              for (var e, n = 0; n < 16; n++) 0 === (3 & n) && (e = 4294967296 * Math.random()), (i[n] = (e >>> ((3 & n) << 3)) & 255);
               return i;
             };
           }
@@ -124,12 +76,9 @@ function escapeHtml(unsafe) {
         function (e, n, r) {
           function o(e, n, r) {
             var o = (n && r) || 0;
-            "string" == typeof e &&
-              ((n = "binary" === e ? new Array(16) : null), (e = null)),
-              (e = e || {});
+            "string" == typeof e && ((n = "binary" === e ? new Array(16) : null), (e = null)), (e = e || {});
             var f = e.random || (e.rng || t)();
-            if (((f[6] = (15 & f[6]) | 64), (f[8] = (63 & f[8]) | 128), n))
-              for (var u = 0; u < 16; ++u) n[o + u] = f[u];
+            if (((f[6] = (15 & f[6]) | 64), (f[8] = (63 & f[8]) | 128), n)) for (var u = 0; u < 16; ++u) n[o + u] = f[u];
             return n || i(f);
           }
           var t = e("./lib/rng"),
@@ -152,9 +101,7 @@ let schemaSurveyId = null;
 
 const supplementaryDataSection = document.querySelector("#supplementary_data");
 const loadMetadataButton = document.querySelector("#load-metadata-btn");
-const remoteSchemaSurveyType = document.querySelector(
-  "#remote-schema-survey-type",
-);
+const remoteSchemaSurveyType = document.querySelector("#remote-schema-survey-type");
 const launchButton = document.querySelector("#launch-btn");
 const flushButton = document.querySelector("#flush-btn");
 
@@ -163,9 +110,7 @@ let cirSchema;
 let schemaUrl;
 
 function clearSurveyMetadataFields() {
-  document
-    .querySelector("#survey-type-metadata-accordion")
-    .classList.add("ons-u-vh");
+  document.querySelector("#survey-type-metadata-accordion").classList.add("ons-u-vh");
   document.querySelector("#survey_metadata_fields").innerHTML = "";
   setTabIndex("survey_type_metadata_detail", -1);
   showMetadataAccordion("sds", false);
@@ -204,9 +149,7 @@ function setLaunchType(launchType) {
   const schemaName = document.querySelector("#schema_name");
   const remoteSchemaUrl = document.querySelector("#remote-schema-url");
   const cirSchemas = document.querySelector("#cir-schemas");
-  const remoteSchemaSurveyType = document.querySelector(
-    "#remote-schema-survey-type",
-  );
+  const remoteSchemaSurveyType = document.querySelector("#remote-schema-survey-type");
 
   if (["cir", "remote", "url"].includes(launchType)) {
     if (schemaName.selectedIndex) {
@@ -267,19 +210,14 @@ function disableButtons(buttons) {
 
 function includeSurveyMetadataFields(schema_name, survey_type) {
   let formTypeValue = schema_name.split("_").slice(1).join("_");
-  document
-    .querySelector("#survey-type-metadata-accordion")
-    .classList.remove("ons-u-vh");
-  document.querySelector(".survey_heading").innerHTML =
-    `${escapeHtml(survey_type)} Survey Metadata`;
+  document.querySelector("#survey-type-metadata-accordion").classList.remove("ons-u-vh");
+  document.querySelector(".survey_heading").innerHTML = `${escapeHtml(survey_type)} Survey Metadata`;
 
-  const surveyMetadataFields = document.querySelector(
-    "#survey_metadata_fields",
-  );
+  const surveyMetadataFields = document.querySelector("#survey_metadata_fields");
   const div = document.createElement("div");
   div.className = "ons-field ons-field--inline";
   div.innerHTML = `
-    <label class="ons-label" for="form_type">form_type</label> 
+    <label class="ons-label" for="form_type">form_type</label>
     <input id="form_type" name="form_type" type="text" class="ons-input ons-input--text ons-input-type__input">
     `;
   div.querySelector("input").value = formTypeValue;
@@ -294,9 +232,7 @@ function loadMetadataForSchemaName() {
   localStorage.setItem("schema_name", schemaName);
 
   if (schemaName !== "Select Schema") {
-    const surveyType = document.querySelector(
-      `#schema_name option[value="${schemaName}"]`,
-    ).dataset.surveyType;
+    const surveyType = document.querySelector(`#schema_name option[value="${schemaName}"]`).dataset.surveyType;
     loadSurveyMetadata(schemaName, surveyType);
     loadSchemaMetadata(schemaName, null);
   }
@@ -306,9 +242,7 @@ function loadMetadataForRemoteSchema() {
   schemaUrl = document.querySelector("#remote-schema-url").value;
 
   let cirSchemaDropdown = document.querySelector("#cir-schemas");
-  let cirInstrumentId = cirSchemaDropdown.selectedIndex
-    ? cirSchemaDropdown.value
-    : null;
+  let cirInstrumentId = cirSchemaDropdown.selectedIndex ? cirSchemaDropdown.value : null;
 
   let schemaName = null;
 
@@ -348,10 +282,7 @@ function loadMetadataForRemoteSchema() {
 }
 
 function loadSurveyMetadata(schema_name, survey_type) {
-  if (
-    survey_type.toLowerCase() === "test" ||
-    survey_type.toLowerCase() === "social"
-  ) {
+  if (survey_type.toLowerCase() === "test" || survey_type.toLowerCase() === "social") {
     clearSurveyMetadataFields();
   } else {
     includeSurveyMetadataFields(schema_name, survey_type);
@@ -380,13 +311,7 @@ function getLabelFor(fieldName) {
   return `<label class="ons-label" for="${fieldName}">${fieldName}</label>`;
 }
 
-function getInputField(
-  fieldName,
-  type,
-  defaultValue = null,
-  isReadOnly = false,
-  onChangeCallback = null,
-) {
+function getInputField(fieldName, type, defaultValue = null, isReadOnly = false, onChangeCallback = null) {
   const value = defaultValue ? `value="${defaultValue}"` : "";
   const readOnly = isReadOnly ? "readonly" : "";
   if (readOnly) {
@@ -420,10 +345,7 @@ function showCIRMetadata(cirInstrumentId, cirSchema) {
     validator_version: cirSchema.getAttribute("data-validator-version"),
   };
   document.querySelector("#cir_metadata").innerHTML = Object.keys(ciMetadata)
-    .map(
-      (key) =>
-        `<div class="ons-field ons-field--inline">${getLabelFor(key)}${getInputField(key, "text", ciMetadata[key], true)}</div>`,
-    )
+    .map((key) => `<div class="ons-field ons-field--inline">${getLabelFor(key)}${getInputField(key, "text", ciMetadata[key], true)}</div>`)
     .join("");
   setTabIndex("cir_metadata_detail", 0);
 }
@@ -441,22 +363,12 @@ function updateSDSDropdown(sdsEnabled) {
         setTabIndex("sds_metadata_detail", 0);
         enableButtons([launchButton, flushButton]);
 
-        if (
-          !document
-            .querySelector("#survey_metadata")
-            .contains(sdsDatasetIdElement)
-        ) {
+        if (!document.querySelector("#survey_metadata").contains(sdsDatasetIdElement)) {
           // add sds_dataset_id field into the SDS metadata section if not already in survey metadata
           supplementaryDataSection.innerHTML = `<div class="ons-field ons-field--inline">${getLabelFor("sds_dataset_id")}<select id="sds_dataset_id" name="sds_dataset_id" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select></div>`;
         }
 
-        document.querySelector("#sds_dataset_id").innerHTML =
-          sds_metadata_response
-            .map(
-              (dataset) =>
-                `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`,
-            )
-            .join("");
+        document.querySelector("#sds_dataset_id").innerHTML = sds_metadata_response.map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`).join("");
         loadSupplementaryDataInfo();
       } else if (document.querySelector("#sds_dataset_id")) {
         document.querySelector("#sds_dataset_id").innerHTML = "";
@@ -489,83 +401,51 @@ function loadSchemaMetadata(schemaName, schemaUrl, cirInstrumentId) {
       schemaSurveyId = schema_response.survey_id;
 
       if (schema_response.metadata.length > 0) {
-        document.querySelector("#survey_metadata").innerHTML =
-          schema_response.metadata
-            .map((metadataField) => {
-              const fieldName = metadataField["name"];
-              const defaultValue = metadataField["default"];
+        document.querySelector("#survey_metadata").innerHTML = schema_response.metadata
+          .map((metadataField) => {
+            const fieldName = metadataField["name"];
+            const defaultValue = metadataField["default"];
 
-              return `<div class="ons-field ons-field--inline">${getLabelFor(fieldName)}${(() => {
-                if (metadataField["type"] === "boolean") {
-                  return getInputField(fieldName, "checkbox");
-                } else if (metadataField["type"] === "uuid") {
-                  return (
-                    `<span>${getInputField(fieldName, "text", uuidv4())}` +
-                    `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` +
-                    `</span>`
-                  );
-                } else if (
-                  fieldName === "survey_id" ||
-                  fieldName === "period_id"
-                ) {
-                  return getInputField(
-                    fieldName,
-                    "text",
-                    fieldName === "survey_id"
-                      ? schema_response.survey_id
-                      : defaultValue,
-                    false,
-                    "updateSDSDropdown(sdsEnabled)",
-                  );
-                } else if (fieldName === "sds_dataset_id") {
-                  return `<select id="${fieldName}" name="${fieldName}" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select>`;
-                } else {
-                  return getInputField(fieldName, "text", defaultValue);
-                }
-              })()}</div>`;
-            })
-            .join("");
+            return `<div class="ons-field ons-field--inline">${getLabelFor(fieldName)}${(() => {
+              if (metadataField["type"] === "boolean") {
+                return getInputField(fieldName, "checkbox");
+              } else if (metadataField["type"] === "uuid") {
+                return `<span>${getInputField(fieldName, "text", uuidv4())}` + `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` + `</span>`;
+              } else if (fieldName === "survey_id" || fieldName === "period_id") {
+                return getInputField(fieldName, "text", fieldName === "survey_id" ? schema_response.survey_id : defaultValue, false, "updateSDSDropdown(sdsEnabled)");
+              } else if (fieldName === "sds_dataset_id") {
+                return `<select id="${fieldName}" name="${fieldName}" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select>`;
+              } else {
+                return getInputField(fieldName, "text", defaultValue);
+              }
+            })()}</div>`;
+          })
+          .join("");
         updateSDSDropdown(sdsEnabled);
       } else {
-        document.querySelector("#survey_metadata").innerHTML =
-          "No metadata required for this survey";
+        document.querySelector("#survey_metadata").innerHTML = "No metadata required for this survey";
       }
       enableButtons([launchButton, flushButton]);
     })
     .catch((_) => {
-      document.querySelector("#survey_metadata").innerHTML =
-        "Failed to load Survey Metadata";
+      document.querySelector("#survey_metadata").innerHTML = "Failed to load Survey Metadata";
     });
 }
 
 function loadSupplementaryDataInfo() {
   const selectedDatasetId = document.getElementById("sds_dataset_id")?.value;
-  const selectedDataset = supplementaryDataSets?.find(
-    (d) => d["dataset_id"] === selectedDatasetId,
-  );
+  const selectedDataset = supplementaryDataSets?.find((d) => d["dataset_id"] === selectedDatasetId);
 
   if (!selectedDataset) {
     return;
   }
 
-  const sdsDatasetMetadataKeys = [
-    "title",
-    "total_reporting_units",
-    "schema_version",
-    "sds_dataset_version",
-  ];
+  const sdsDatasetMetadataKeys = ["title", "total_reporting_units", "schema_version", "sds_dataset_version"];
 
-  const sdsMetadataField = (key) =>
-    `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, "text", selectedDataset[key], true)}</div>`;
+  const sdsMetadataField = (key) => `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, "text", selectedDataset[key], true)}</div>`;
 
-  const supplementaryDataFields = document
-    .createRange()
-    .createContextualFragment(
-      sdsDatasetMetadataKeys.map(sdsMetadataField).join(""),
-    );
-  supplementaryDataSection
-    .querySelectorAll(".ons-field[data-sds-metadata-key]")
-    .forEach((sds_value) => sds_value.remove());
+  const supplementaryDataFields = document.createRange().createContextualFragment(sdsDatasetMetadataKeys.map(sdsMetadataField).join(""));
+  supplementaryDataSection.querySelectorAll(".ons-field[data-sds-metadata-key]").forEach((sds_value) => sds_value.remove());
   supplementaryDataSection.appendChild(supplementaryDataFields);
 }
 
@@ -597,9 +477,7 @@ function validateForm() {
 }
 
 function validateResponseExpiresAt() {
-  let responseExpiresAt = Date.parse(
-    document.querySelector("#response_expires_at").value,
-  );
+  let responseExpiresAt = Date.parse(document.querySelector("#response_expires_at").value);
   if (isNaN(responseExpiresAt)) {
     document.querySelector("#response_expires_at").remove();
   }
@@ -629,15 +507,11 @@ function retrieveResponseId() {
 }
 
 function loadResponseId() {
-  document.querySelector("#response_id").value =
-    localStorage.getItem("response_id");
+  document.querySelector("#response_id").value = localStorage.getItem("response_id");
 }
 
 function saveResponseId() {
-  localStorage.setItem(
-    "response_id",
-    document.querySelector("#response_id").value,
-  );
+  localStorage.setItem("response_id", document.querySelector("#response_id").value);
 }
 
 function clearLocalStorage() {
@@ -650,9 +524,7 @@ function clearLocalStorage() {
 }
 
 function populateDropDownWithValue(selector, value) {
-  const availableOptions = [...document.querySelector(selector).options].map(
-    (x) => x.value,
-  );
+  const availableOptions = [...document.querySelector(selector).options].map((x) => x.value);
 
   if (availableOptions.includes(value)) {
     document.querySelector(selector).value = value;
@@ -664,11 +536,7 @@ function setTabIndex(metadataDetail, value) {
 }
 
 function initialiseTabIndex() {
-  const details = [
-    "cir_metadata_detail",
-    "survey_type_metadata_detail",
-    "sds_metadata_detail",
-  ];
+  const details = ["cir_metadata_detail", "survey_type_metadata_detail", "sds_metadata_detail"];
   for (i = 0; i < details.length; i++) {
     document.getElementById(details[i]).tabIndex = -1;
   }

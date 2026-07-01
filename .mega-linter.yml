@@ -1,0 +1,38 @@
+---
+# Configuration file for MegaLinter
+#
+# See all available variables at https://megalinter.io/latest/config-file/ and in
+# linters documentation
+# all, none, or list of linter keys
+
+# If you use ENABLE variable, all other languages/formats/tooling-formats will
+# be disabled by default
+ENABLE:
+  - ACTION
+  - BASH
+  - CSS
+  - DOCKERFILE
+  - EDITORCONFIG
+  - GO
+  - HTML
+  # - JAVASCRIPT
+  - JSON
+  - MAKEFILE
+  - MARKDOWN
+  - YAML
+
+DISABLE_LINTERS:
+  - HTML_HTMLHINT # HTMLHint was disabled as HTMLHint doesn't understand Jinja2 syntax so there was a lot of false positives
+
+FORMATTERS_DISABLE_ERRORS: false
+SHOW_ELAPSED_TIME: true
+FLAVOR_SUGGESTIONS: false
+PARALLEL_PROCESS_NUMBER: 1
+FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
+GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
+GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]
+
+ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
+  - GITHUB_TOKEN
+
+HTML_DJLINT_ARGUMENTS: ["--profile", "jinja"]

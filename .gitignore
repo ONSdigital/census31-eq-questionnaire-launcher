@@ -32,3 +32,6 @@ census31-eq-questionnaire-launcher
 # Dev config
 .vscode/
 .idea/*
+
+# Linting
+megalinter-reports/
