@@ -35,10 +35,10 @@ insert_final_newline = true
 [*.{json}]
 insert_final_newline = false
 
-[*.{md,po,json,html,js,yaml,yml}]
+[*.{md,json,html,js,yml}]
 max_line_length = off
 
-[*.{js,yml,yaml,md}]
+[*.{js,yml,md}]
 indent_size = 2
 
 [*.go]
