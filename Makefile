@@ -1,13 +1,5 @@
-format: format-go format-static format-templates
-
 format-go:
 	go fmt ./...
-
-format-static:
-	npx prettier "static/**/*.{js,css}" --write
-
-format-templates:
-	poetry run djlint templates/*.html --reformat
 
 .PHONY: megalint megalint-apply clean-megalint
 megalint:
