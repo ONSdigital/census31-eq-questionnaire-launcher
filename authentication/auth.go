@@ -410,9 +410,9 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 		return "", validationError
 	}
 
-	schema, schemaErr := getSchema(launcherSchema)
-	if schemaErr != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", schemaErr)
+	schema, error := getSchema(launcherSchema)
+	if error != "" {
+		return "", fmt.Sprintf("getSchema failed err: %v", error)
 	}
 
 	urlValues["account_service_url"] = []string{accountServiceURL}
@@ -506,9 +506,9 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 
 	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaUrl, cirInstrumentId)
 
-	schema, schemaErr := getSchema(launcherSchema)
-	if schemaErr != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", schemaErr)
+	schema, error := getSchema(launcherSchema)
+	if error != "" {
+		return "", fmt.Sprintf("getSchema failed err: %v", error)
 	}
 
 	var claims = generateClaimsV2(postValues, schema)
@@ -550,9 +550,9 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 }
 
 func GetSurveyData(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, string) {
-	schema, schemaErr := getSchema(launcherSchema)
-	if schemaErr != "" {
-		return QuestionnaireSchema{}, fmt.Sprintf("getSchema failed err: %v", schemaErr)
+	schema, error := getSchema(launcherSchema)
+	if error != "" {
+		return QuestionnaireSchema{}, fmt.Sprintf("getSchema failed err: %v", error)
 	}
 
 	defaults := GetDefaultValues()
