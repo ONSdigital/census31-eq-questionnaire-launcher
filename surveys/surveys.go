@@ -109,7 +109,9 @@ func getAvailableSchemasFromRegister() []LauncherSchema {
 			log.Fatal("Do: ", err)
 			return []LauncherSchema{}
 		}
-		defer resp.Body.Close()
+		defer func() {
+			_ = resp.Body.Close()
+		}()
 
 		responseBody, err := io.ReadAll(resp.Body)
 		if err != nil {
@@ -161,7 +163,9 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 		log.Print(err)
 		return ciMetadataList
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -213,7 +217,9 @@ func getAvailableSchemasFromRunner() []LauncherSchema {
 	if err != nil {
 		return []LauncherSchema{}
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != 200 {
 		return []LauncherSchema{}
@@ -278,7 +284,9 @@ func GetSupplementaryDataSets(surveyId string, periodId string) ([]DatasetMetada
 		return datasetList, nil
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {

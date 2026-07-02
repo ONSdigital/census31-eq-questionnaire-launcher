@@ -35,4 +35,4 @@ GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN
 
-HTML_DJLINT_ARGUMENTS: ["--profile", "jinja"]
+HTML_DJLINT_ARGUMENTS: ["--profile", "golang"]

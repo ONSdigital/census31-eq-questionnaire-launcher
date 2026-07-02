@@ -231,7 +231,9 @@ func launcherSchemaFromURL(url string) (launcherSchema surveys.LauncherSchema, e
 	if err != nil {
 		panic(err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != 200 {
 		return launcherSchema, fmt.Sprintf("Failed to load Schema from %s", url)
@@ -295,7 +297,9 @@ func validateSchema(payload []byte) (errMsg string) {
 	if err != nil {
 		return err.Error()
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -622,7 +626,9 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 		log.Println("Failed to load schema from:", url)
 		return schema, fmt.Sprintf("Failed to load Schema from %s", url)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 
 	if resp.StatusCode != 200 {
 		log.Print("Invalid response code for schema from: ", url)
