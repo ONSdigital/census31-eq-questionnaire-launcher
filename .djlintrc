@@ -1,3 +1,4 @@
 {
-    "ignore": "H006"
+    "ignore": "H006",
+    "indent_size": 4
 }
