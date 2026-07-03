@@ -10,22 +10,9 @@
         "type": "git",
         "url": "https://github.com/ONSdigital/census31-eq-questionnaire-launcher"
     },
-    "devDependencies": {
-        "standard": "^17.1.2",
-        "stylelint": "^17.11.0",
-        "stylelint-config-standard": "^40.0.0"
-    },
+    "devDependencies": {},
     "prettier": {
-        "printWidth": 160,
-        "semi": false,
-        "overrides": [
-            {
-                "files": "**/*.js",
-                "options": {
-                    "singleQuote": true
-                }
-            }
-        ]
+        "printWidth": 160
     },
     "eslintConfig": {
         "env": {

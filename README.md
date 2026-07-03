@@ -70,12 +70,8 @@ you will need to install the external tool `golangci-lint`. The command to insta
 `brew install golangci-lint` and to upgrade it use `brew upgrade golangci-lint`. Visit
 [golangci-lint](https://golangci-lint.run/welcome/install/#local-installation) to see additional ways to install the tool.
 
-| Command               | Task                                          |
-|-----------------------|-----------------------------------------------|
-| `make lint-static`    | Lints all static files and reports any issues |
-| `make lint-templates` | Lints all HTML files and reports any issues   |
-| `make lint-go`        | Lints all Golang files using an external tool |
-| `make lint`           | Lints all files listed above                  |
+## Formatting go code
+Running `make format-go` will format all the Golang files and `make lint-go` will lint them.
 
 
 ## Design System

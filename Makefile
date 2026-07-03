@@ -1,17 +1,8 @@
 format-go:
 	go fmt ./...
 
-lint: lint-go lint-templates lint-static
-
 lint-go:
 	golangci-lint run
-
-lint-static:
-	npx stylelint "static/**/*.css"
-	npx standard "static/**/*.js"
-
-lint-templates:
-	poetry run djlint templates --lint
 
 .PHONY: megalint megalint-apply clean-megalint
 megalint:
