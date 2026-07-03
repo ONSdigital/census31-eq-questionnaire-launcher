@@ -24,9 +24,9 @@ ENABLE:
 DISABLE_LINTERS:
   - HTML_HTMLHINT # HTMLHint was disabled as HTMLHint doesn't understand GoLang syntax so there was a lot of false positives
 
-FORMATTERS_DISABLE_ERRORS: false
-SHOW_ELAPSED_TIME: true
-FLAVOR_SUGGESTIONS: false
+FORMATTERS_DISABLE_ERRORS: false # Ensures code is actually fixable when using `make megalint-apply`
+SHOW_ELAPSED_TIME: true # Displays execution time for each linter
+FLAVOR_SUGGESTIONS: false # Disables suggestions to use different MegaLinter flavors
 PARALLEL_PROCESS_NUMBER: 1
 FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
 GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
