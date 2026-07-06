@@ -54,18 +54,12 @@ e.g."http://localhost:8000/quick-launch?schema_url=http://localhost:7777/1_0001.
 ```
 
 ## Commands for Formatting & Linting
-Ensure you are using the correct version of node using:
-``` shell
-nvm install
-nvm use
-```
-
-Firstly, ensure you have Python & Poetry installed and then install djLint for formatting and linting template files using:
+Firstly, ensure you have Python & Poetry installed and install dependencies:
 ```shell
 poetry install
 ```
 
- **Note**: Before being able to run `lint-go`,
+ **Note**: Before being able to run `make lint-go`,
 you will need to install the external tool `golangci-lint`. The command to install the tool is
 `brew install golangci-lint` and to upgrade it use `brew upgrade golangci-lint`. Visit
 [golangci-lint](https://golangci-lint.run/welcome/install/#local-installation) to see additional ways to install the tool.

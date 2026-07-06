@@ -73,21 +73,12 @@ func loadEncryptionKey() (*PublicKeyResult, *KeyLoadError) {
 		return nil, &KeyLoadError{Op: "parse", Err: "Failed to parse encryption key PEM"}
 	}
 
+	kid := fmt.Sprintf("%x", sha1.Sum(keyData))
+
 	publicKey, ok := pub.(*rsa.PublicKey)
 	if !ok {
 		return nil, &KeyLoadError{Op: "cast", Err: "Failed to cast key to rsa.PublicKey"}
 	}
-
-	pubBytes, err := x509.MarshalPKIXPublicKey(publicKey)
-	if err != nil {
-		return nil, &KeyLoadError{Op: "marshal", Err: "Failed to marshal public key"}
-	}
-
-	canonicalPEM := pem.EncodeToMemory(&pem.Block{
-		Type:  "PUBLIC KEY",
-		Bytes: pubBytes,
-	})
-	kid := fmt.Sprintf("%x", sha1.Sum(canonicalPEM))
 
 	return &PublicKeyResult{publicKey, kid}, nil
 }
