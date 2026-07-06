@@ -58,6 +58,7 @@ e.g."http://localhost:8000/quick-launch?schema_url=http://localhost:7777/1_0001.
 you will need to install the external tool `golangci-lint`. The command to install the tool is
 `brew install golangci-lint` and to upgrade it use `brew upgrade golangci-lint`. Visit
 [golangci-lint](https://golangci-lint.run/welcome/install/#local-installation) to see additional ways to install the tool.
+`revive` is run via `go run` using the repository `revive.toml`, so no separate `revive` binary install is required.
 
 ## Formatting go code
 Running `make format-go` will format all the Golang files and `make lint-go` will lint them.
