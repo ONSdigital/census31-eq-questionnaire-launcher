@@ -54,11 +54,6 @@ e.g."http://localhost:8000/quick-launch?schema_url=http://localhost:7777/1_0001.
 ```
 
 ## Commands for Formatting & Linting
-Firstly, ensure you have Python & Poetry installed and install dependencies:
-```shell
-poetry install
-```
-
  **Note**: Before being able to run `make lint-go`,
 you will need to install the external tool `golangci-lint`. The command to install the tool is
 `brew install golangci-lint` and to upgrade it use `brew upgrade golangci-lint`. Visit
