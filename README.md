@@ -61,7 +61,7 @@ To install run:
 ```shell
 brew install golangci-lint
 
-Then to lint the go files you can run:
+To lint the go files run:
 
 ```shell
 make lint-go
