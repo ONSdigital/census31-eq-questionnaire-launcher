@@ -57,13 +57,12 @@ e.g."http://localhost:8000/quick-launch?schema_url=http://localhost:7777/1_0001.
 To run the linting locally you will need to have
 [golangci-lint](https://golangci-lint.run/welcome/install/#local-installation) installed.
 
-
-To install this you can run:
+To install run:
 ```shell
 brew install golangci-lint
 ```
 
-Then to lint the go files you can run:
+To lint the go files run:
 ```shell
 make lint-go
 ```
