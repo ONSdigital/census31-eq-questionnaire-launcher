@@ -60,11 +60,10 @@ To run the linting locally you will need to have
 
 To install this you can run:
 ```shell
-`brew install golangci-lint`
+brew install golangci-lint
 ```
 
 Then to lint the go files you can run:
-
 ```shell
 make lint-go
 ```
