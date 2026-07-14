@@ -54,7 +54,21 @@ e.g."http://localhost:8000/quick-launch?schema_url=http://localhost:7777/1_0001.
 ```
 
 ## Commands for Formatting & Linting
-To run the linting locally you will need to have
+
+We use [Megalinter](https://megalinter.io/latest/mega-linter-runner/) to maintain our code by running various linters over the different file types we have. This is run against PRs using the `mega-linter` GitHub action but can also be run locally. To run the linter locally you can run:
+
+```shell
+make megalint
+```
+
+This command will run all the linters enabled in the `mega-linter.yml` config file in the root of the repo against the all the files in the repo and report back any issues. This is run via docker and may take some time to run first time.
+We also have another command which will also run Megalinter locally but this one will attempt to fix any issues it can rather than just report them.
+
+```shell
+make megalint-apply
+```
+
+Its also possible to just run the golang linting locally, to run this you will need to have
 [golangci-lint](https://golangci-lint.run/welcome/install/#local-installation) installed.
 
 To install run:
