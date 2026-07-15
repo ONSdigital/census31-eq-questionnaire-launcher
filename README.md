@@ -71,9 +71,13 @@ make megalint-apply
 Its also possible to just run the golang linting locally, to run this you will need to have
 [golangci-lint](https://golangci-lint.run/welcome/install/#local-installation) installed.
 
-To install run:
+To install with Homebrew run:
 ```shell
 brew install golangci-lint
+```
+To install with Conda run:
+```
+conda install conda-forge::golangci-lint
 ```
 
 To lint the go files run:
