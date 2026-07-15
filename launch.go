@@ -174,11 +174,12 @@ func redirectURL(w http.ResponseWriter, r *http.Request) {
 	flushAction := r.PostForm.Get("action_flush")
 	log.Println("Request: " + r.PostForm.Encode())
 
-	if flushAction != "" {
-		http.Redirect(w, r, hostURL+"/flush?token="+token, 307)
-	} else if launchVersion != "" {
-		http.Redirect(w, r, hostURL+"/session?token="+token, 301)
-	} else {
+	switch {
+	case flushAction != "":
+		http.Redirect(w, r, hostURL+"/flush?token="+token, http.StatusTemporaryRedirect)
+	case launchVersion != "":
+		http.Redirect(w, r, hostURL+"/session?token="+token, http.StatusMovedPermanently)
+	default:
 		http.Error(w, "Invalid Action", 500)
 	}
 }
@@ -213,7 +214,7 @@ func quickLauncherHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if schemaURL != "" {
-		http.Redirect(w, r, hostURL+"/session?token="+token, 302)
+		http.Redirect(w, r, hostURL+"/session?token="+token, http.StatusFound)
 	} else {
 		http.Error(w, "Not Found", 404)
 	}
@@ -228,7 +229,7 @@ func main() {
 	r.HandleFunc("/survey-data", getSurveyDataHandler).Methods("GET")
 	r.HandleFunc("/supplementary-data", getSupplementaryDataHandler).Methods("GET")
 
-	//Author Launcher with passed parameters in Url
+	// Author Launcher with passed parameters in Url
 	r.HandleFunc("/quick-launch", quickLauncherHandler).Methods("GET")
 
 	// Status Page

@@ -145,13 +145,19 @@ func isTopLevelMetadata(key string) bool {
 	return false
 }
 
-func getSurveyMetadataFromClaims(claimValues map[string][]string, data map[string]interface{}, claims map[string]interface{}, surveyMetadata map[string]interface{}) {
+func getSurveyMetadataFromClaims(
+	claimValues map[string][]string,
+	data map[string]interface{},
+	claims map[string]interface{},
+	surveyMetadata map[string]interface{},
+) {
 	for key, value := range claimValues {
-		if isTopLevelMetadata(key) {
+		switch {
+		case isTopLevelMetadata(key):
 			claims[key] = value[0]
-		} else if key == "roles" {
+		case key == "roles":
 			claims[key] = value
-		} else {
+		default:
 			data[key] = value[0]
 		}
 	}
@@ -211,18 +217,18 @@ func GenerateJwtClaims() (jwtClaims map[string]interface{}) {
 	return jwtClaims
 }
 
-func launcherSchemaFromURL(url string) (launcherSchema surveys.LauncherSchema, error string) {
+func launcherSchemaFromURL(url string) (launcherSchema surveys.LauncherSchema, errMsg string) {
 	resp, err := clients.GetHTTPClient().Get(url)
 	if err != nil {
 		panic(err)
 	}
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != 200 {
 		return launcherSchema, fmt.Sprintf("Failed to load Schema from %s", url)
 	}
 
 	responseBody, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
 	if err != nil {
 		panic(err)
 	}
@@ -266,7 +272,7 @@ func launcherSchemaFromURL(url string) (launcherSchema surveys.LauncherSchema, e
 	return launcherSchema, ""
 }
 
-func validateSchema(payload []byte) (error string) {
+func validateSchema(payload []byte) (errMsg string) {
 	if settings.Get("SCHEMA_VALIDATOR_URL") == "" {
 		return ""
 	}
@@ -280,9 +286,9 @@ func validateSchema(payload []byte) (error string) {
 	if err != nil {
 		return err.Error()
 	}
+	defer resp.Body.Close() //nolint:errcheck
 
 	responseBody, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
 	if err != nil {
 		return err.Error()
 	}
@@ -294,13 +300,13 @@ func validateSchema(payload []byte) (error string) {
 	return ""
 }
 
-func getSchemaClaims(LauncherSchema surveys.LauncherSchema) map[string]interface{} {
+func getSchemaClaims(launcherSchema surveys.LauncherSchema) map[string]interface{} {
 
 	schemaClaims := make(map[string]interface{})
-	if LauncherSchema.URL != "" {
-		schemaClaims["schema_url"] = LauncherSchema.URL
-	} else if LauncherSchema.CIRInstrumentID != "" {
-		schemaClaims["cir_instrument_id"] = LauncherSchema.CIRInstrumentID
+	if launcherSchema.URL != "" {
+		schemaClaims["schema_url"] = launcherSchema.URL
+	} else if launcherSchema.CIRInstrumentID != "" {
+		schemaClaims["cir_instrument_id"] = launcherSchema.CIRInstrumentID
 	}
 
 	return schemaClaims
@@ -385,7 +391,7 @@ func getStringOrDefault(key string, values map[string][]string, defaultValue str
 }
 
 // GenerateTokenFromDefaultsV2 coverts a set of DEFAULT values into a JWT
-func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, urlValues url.Values) (token string, error string) {
+func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, urlValues url.Values) (token string, errMsg string) {
 	launcherSchema, validationError := launcherSchemaFromURL(schemaURL)
 	if validationError != "" {
 		return "", validationError
@@ -400,9 +406,9 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 
 	claims := generateClaimsV2(urlValues, schema)
 
-	requiredSchemaMetadata, error := getRequiredSchemaMetadata(launcherSchema)
-	if error != "" {
-		return "", fmt.Sprintf("getRequiredSchemaMetadata failed err: %v", error)
+	requiredSchemaMetadata, requiredMetadataErr := getRequiredSchemaMetadata(launcherSchema)
+	if requiredMetadataErr != "" {
+		return "", fmt.Sprintf("getRequiredSchemaMetadata failed err: %v", requiredMetadataErr)
 	}
 
 	surveyMetadata := make(map[string]interface{})
@@ -504,9 +510,9 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 		claims[key] = v
 	}
 
-	requiredMetadata, error := getRequiredSchemaMetadata(launcherSchema)
-	if error != "" {
-		return "", fmt.Sprintf(" getRequiredSchemaMetadata failed err: %v", error)
+	requiredMetadata, requiredMetadataErr := getRequiredSchemaMetadata(launcherSchema)
+	if requiredMetadataErr != "" {
+		return "", fmt.Sprintf(" getRequiredSchemaMetadata failed err: %v", requiredMetadataErr)
 	}
 
 	// Doesn't work for top level boolean metadata
@@ -579,9 +585,10 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 
 	client := clients.GetHTTPClient()
 
-	if launcherSchema.URL != "" {
+	switch {
+	case launcherSchema.URL != "":
 		url = launcherSchema.URL
-	} else if launcherSchema.CIRInstrumentID != "" {
+	case launcherSchema.CIRInstrumentID != "":
 		hostURL := settings.Get("CIR_API_BASE_URL")
 
 		log.Println("Collection Instrument ID: ", launcherSchema.CIRInstrumentID)
@@ -592,7 +599,7 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 			log.Print(err)
 			return schema, fmt.Sprintf("Unable to generate CIR authentication credentials %s", url)
 		}
-	} else {
+	default:
 		hostURL := settings.Get("SURVEY_RUNNER_SCHEMA_URL")
 
 		log.Println("Name: ", launcherSchema.Name)
@@ -606,6 +613,7 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 		log.Println("Failed to load schema from:", url)
 		return schema, fmt.Sprintf("Failed to load Schema from %s", url)
 	}
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != 200 {
 		log.Print("Invalid response code for schema from: ", url)
@@ -613,7 +621,6 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 	}
 
 	responseBody, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
 	if err != nil {
 		log.Print(err)
 		return schema, fmt.Sprintf("Failed to load Schema from %s", url)

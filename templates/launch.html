@@ -1,403 +1,403 @@
 {{ define "title" }}Launch a Survey{{ end }}
 {{ define "body" }}
-<body onload="onLoad()" xmlns="http://www.w3.org/1999/html">
-    <form action=""
-          method="post"
-          xmlns="http://www.w3.org/1999/html"
-          onsubmit="validateForm()">
-        <div class="ons-grid">
-            <div class="ons-grid__col ons-col-6@xl">
-                <div class="ons-pl-grid-col">
-                    <h1 class="ons-u-fs-xxl">Launch a survey</h1>
-                    <hr>
-                    <h2 class="ons-u-mt-s ons-u-fs-m">Launch Pattern:</h2>
-                    <div class="ons-field ons-field--inline">
-                        <label class="ons-label" for="launch_pattern">Version</label>
-                        <select id="launch_pattern"
+    <body onload="onLoad()" xmlns="http://www.w3.org/1999/html">
+        <form action=""
+            method="post"
+            xmlns="http://www.w3.org/1999/html"
+            onsubmit="validateForm()">
+            <div class="ons-grid">
+                <div class="ons-grid__col ons-col-6@xl">
+                    <div class="ons-pl-grid-col">
+                        <h1 class="ons-u-fs-xxl">Launch a survey</h1>
+                        <hr>
+                        <h2 class="ons-u-mt-s ons-u-fs-m">Launch Pattern:</h2>
+                        <div class="ons-field ons-field--inline">
+                            <label class="ons-label" for="launch_pattern">Version</label>
+                            <select id="launch_pattern"
                                 name="version"
                                 class="ons-input ons-input--select ons-input--w-20"
                                 onload="loadMetadataForSchemaName()">
-                            <option value="v2" selected>v2</option>
-                        </select>
-                    </div>
-                    <hr>
-                    <h2 class="ons-u-mt-s ons-u-fs-m">Launch by Schema Name:</h2>
-                    <div class="ons-field ons-field--inline">
-                        <label class="ons-label" for="schema_name">Schemas</label>
-                        <select id="schema_name"
+                                <option value="v2" selected>v2</option>
+                            </select>
+                        </div>
+                        <hr>
+                        <h2 class="ons-u-mt-s ons-u-fs-m">Launch by Schema Name:</h2>
+                        <div class="ons-field ons-field--inline">
+                            <label class="ons-label" for="schema_name">Schemas</label>
+                            <select id="schema_name"
                                 name="schema_name"
                                 class="ons-input ons-input--select ons-input--w-20"
                                 onchange="loadMetadataForSchemaName(); setLaunchType('name')">
-                            <option selected disabled>Select Schema</option>
-                            {{ range $surveyType, $schemasList := .Schemas }}
-                            <optgroup label="{{ $surveyType }} Surveys">
-                                {{ range $schema := $schemasList }}
-                                <option value="{{ $schema.Name }}" data-survey-type="{{ $surveyType }}">{{ $schema.Name }}</option>
+                                <option selected disabled>Select Schema</option>
+                                {{ range $surveyType, $schemasList := .Schemas }}
+                                    <optgroup label="{{ $surveyType }} Surveys">
+                                        {{ range $schema := $schemasList }}
+                                            <option value="{{ $schema.Name }}" data-survey-type="{{ $surveyType }}">{{ $schema.Name }}</option>
+                                        {{ end }}
+                                    </optgroup>
                                 {{ end }}
-                            </optgroup>
-                            {{ end }}
-                        </select>
-                    </div>
-                    <hr>
-                    <h2 class="ons-u-mt-s ons-u-fs-m">Launch Remote Schemas:</h2>
-                    <div class="ons-field ons-field--inline">
-                        <label class="ons-label" for="remote-schema-survey-type">Survey Type</label>
-                        <select name="survey-types"
+                            </select>
+                        </div>
+                        <hr>
+                        <h2 class="ons-u-mt-s ons-u-fs-m">Launch Remote Schemas:</h2>
+                        <div class="ons-field ons-field--inline">
+                            <label class="ons-label" for="remote-schema-survey-type">Survey Type</label>
+                            <select name="survey-types"
                                 id="remote-schema-survey-type"
                                 onchange="setSurveyType(this)"
                                 class="ons-input ons-input--select ons-input--w-20">
-                            <option selected disabled>Select Survey Type</option>
-                            {{ range $surveyType, $schemasList := .Schemas }}
-                            <option value="{{ $surveyType }}">{{ $surveyType }}</option>
-                            {{ end }}
-                        </select>
-                    </div>
-                    <div class="ons-field ons-field--inline">
-                        <label class="ons-label" for="remote-schema-url">Schema URL</label>
-                        <input id="remote-schema-url"
-                               name="schema_url"
-                               type="text"
-                               class="ons-input ons-input--text ons-input-type__input ons-input--w-20"
-                               onchange="setSchemaUrl(this)">
-                    </div>
-                    <div class="ons-field ons-field--inline">
-                        <label class="ons-label" for="cir-schemas">CIR Schema</label>
-                        <select id="cir-schemas"
+                                <option selected disabled>Select Survey Type</option>
+                                {{ range $surveyType, $schemasList := .Schemas }}
+                                    <option value="{{ $surveyType }}">{{ $surveyType }}</option>
+                                {{ end }}
+                            </select>
+                        </div>
+                        <div class="ons-field ons-field--inline">
+                            <label class="ons-label" for="remote-schema-url">Schema URL</label>
+                            <input id="remote-schema-url"
+                                name="schema_url"
+                                type="text"
+                                class="ons-input ons-input--text ons-input-type__input ons-input--w-20"
+                                onchange="setSchemaUrl(this)">
+                        </div>
+                        <div class="ons-field ons-field--inline">
+                            <label class="ons-label" for="cir-schemas">CIR Schema</label>
+                            <select id="cir-schemas"
                                 name="cir_instrument_id"
                                 class="ons-input ons-input--select ons-input--w-20"
                                 onchange="setCirSchema(this);">
-                            <option selected disabled>Select Schema</option>
-                            {{ range $cirSchema := .CirSchemas }}
-                            <option value="{{ $cirSchema.GUID }}"
-                                    data-schema-name="{{ $cirSchema.Title }}"
-                                    data-form-type="{{ $cirSchema.ClassifierValue }}"
-                                    data-version="{{ $cirSchema.CIVersion }}"
-                                    data-language="{{ $cirSchema.Language }}"
-                                    data-title="{{ $cirSchema.Title }}"
-                                    data-validator-version="{{ $cirSchema.ValidatorVersion }}">
-                                {{ if HasPrefix $cirSchema.Title "Test" }}
-                                    schema_title: {{ $cirSchema.Title }}
-                                {{ else }}
-                                    survey_id: {{ $cirSchema.SurveyID }} form_type: {{ $cirSchema.ClassifierValue }} ci_version: {{ $cirSchema.CIVersion }}
+                                <option selected disabled>Select Schema</option>
+                                {{ range $cirSchema := .CirSchemas }}
+                                    <option value="{{ $cirSchema.GUID }}"
+                                        data-schema-name="{{ $cirSchema.Title }}"
+                                        data-form-type="{{ $cirSchema.ClassifierValue }}"
+                                        data-version="{{ $cirSchema.CIVersion }}"
+                                        data-language="{{ $cirSchema.Language }}"
+                                        data-title="{{ $cirSchema.Title }}"
+                                        data-validator-version="{{ $cirSchema.ValidatorVersion }}">
+                                        {{ if HasPrefix $cirSchema.Title "Test" }}
+                                            schema_title: {{ $cirSchema.Title }}
+                                        {{ else }}
+                                            survey_id: {{ $cirSchema.SurveyID }} form_type: {{ $cirSchema.ClassifierValue }} ci_version: {{ $cirSchema.CIVersion }}
+                                        {{ end }}
+                                    </option>
                                 {{ end }}
-                            </option>
-                            {{ end }}
-                        </select>
-                    </div>
-                    <div class="ons-u-mt-s">
-                        <button id="load-metadata-btn"
+                            </select>
+                        </div>
+                        <div class="ons-u-mt-s">
+                            <button id="load-metadata-btn"
                                 type="button"
                                 class="ons-btn ons-btn--small ons-btn--disabled"
                                 disabled
                                 onclick="loadMetadataForRemoteSchema()">
-                            <span class="ons-btn__inner"><span class="ons-btn__text">Load Metadata</span></span>
-                        </button>
-                    </div>
-                    <hr class="ons-u-mb-m">
-                    <div class="ons-btn-group">
-                        <button id="launch-btn"
+                                <span class="ons-btn__inner"><span class="ons-btn__text">Load Metadata</span></span>
+                            </button>
+                        </div>
+                        <hr class="ons-u-mb-m">
+                        <div class="ons-btn-group">
+                            <button id="launch-btn"
                                 type="submit"
                                 class="ons-btn ons-btn--disabled ons-u-mb-s"
                                 disabled
                                 onclick="saveResponseId()">
-                            <span class="ons-btn__inner"><span class="ons-btn__text">Open Survey</span></span>
-                        </button>
-                        <button name="action_flush"
+                                <span class="ons-btn__inner"><span class="ons-btn__text">Open Survey</span></span>
+                            </button>
+                            <button name="action_flush"
                                 id="flush-btn"
                                 type="submit"
                                 value="Flush Survey Data"
                                 disabled
                                 class="ons-btn ons-btn--disabled ons-u-mb-s">
-                            <span class="ons-btn__inner"><span class="ons-btn__text">Flush Survey Data</span></span>
-                        </button>
-                        <button id="local-storage-btn"
+                                <span class="ons-btn__inner"><span class="ons-btn__text">Flush Survey Data</span></span>
+                            </button>
+                            <button id="local-storage-btn"
                                 type="button"
                                 class="ons-btn ons-u-mb-s"
                                 onclick="clearLocalStorage()">
-                            <span class="ons-btn__inner"><span class="ons-btn__text">Clear Local Storage</span></span>
-                        </button>
+                                <span class="ons-btn__inner"><span class="ons-btn__text">Clear Local Storage</span></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="ons-grid__col ons-col-6@xl">
-                <div class="ons-pl-grid-col">
-                    <div id="metadata-accordion" class="ons-accordion">
-                        <button type="button"
+                <div class="ons-grid__col ons-col-6@xl">
+                    <div class="ons-pl-grid-col">
+                        <div id="metadata-accordion" class="ons-accordion">
+                            <button type="button"
                                 class="ons-btn ons-accordion__toggle-all ons-u-mb-s ons-u-d-no ons-btn--small"
                                 data-close-all="Hide all"
                                 data-group="metadata-accordion">
-                            <span class="ons-btn__inner ons-accordion__toggle-all-inner"><span class="ons-btn__text">Show all</span></span>
-                        </button>
-                    </div>
-                    <div id="survey-type-metadata-accordion"
-                         class="ons-details ons-js-details ons-details--accordion ons-u-vh"
-                         data-group="metadata-accordion">
-                        <div class="ons-details__heading ons-js-details-heading"
-                             role="button"
-                             id="survey_type_metadata_detail">
-                            <h2 class="ons-details__title survey_heading">{survey_type} Survey Metadata</h2>
-                            <span class="ons-details__icon">
-                                <svg class="ons-icon"
-                                     viewBox="0 0 8 13"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     focusable="false"
-                                     fill="currentColor"
-                                     role="img"
-                                     title="ons-icon-chevron">
-                                    <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                </svg>
-                            </span>
+                                <span class="ons-btn__inner ons-accordion__toggle-all-inner"><span class="ons-btn__text">Show all</span></span>
+                            </button>
                         </div>
-                        <div id="survey-type-metadata-accordion-content"
-                             class="ons-details__content ons-js-details-content ons-u-mb-m">
-                            <div id="survey_metadata_fields"></div>
-                        </div>
-                    </div>
-                    <div id="cir-metadata-accordion"
-                         class="ons-details ons-js-details ons-details--accordion ons-u-vh"
-                         data-group="metadata-accordion">
-                        <div class="ons-details__heading ons-js-details-heading"
-                             id="cir_metadata_detail"
-                             role="button"
-                             data-save-state="true">
-                            <h2 class="ons-details__title">CIR Metadata</h2>
-                            <span class="ons-details__icon">
-                                <svg class="ons-icon"
-                                     viewBox="0 0 8 13"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     focusable="false"
-                                     fill="currentColor"
-                                     role="img"
-                                     title="ons-icon-chevron">
-                                    <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                </svg>
-                            </span>
-                        </div>
-                        <div id="cir-metadata-accordion-content"
-                             class="ons-details__content ons-js-details-content ons-u-mb-m">
-                            <div class="cir-metadata">
-                                <div id="cir_metadata"></div>
+                        <div id="survey-type-metadata-accordion"
+                            class="ons-details ons-js-details ons-details--accordion ons-u-vh"
+                            data-group="metadata-accordion">
+                            <div class="ons-details__heading ons-js-details-heading"
+                                role="button"
+                                id="survey_type_metadata_detail">
+                                <h2 class="ons-details__title survey_heading">{survey_type} Survey Metadata</h2>
+                                <span class="ons-details__icon">
+                                    <svg class="ons-icon"
+                                        viewBox="0 0 8 13"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        focusable="false"
+                                        fill="currentColor"
+                                        role="img"
+                                        title="ons-icon-chevron">
+                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div id="survey-type-metadata-accordion-content"
+                                class="ons-details__content ons-js-details-content ons-u-mb-m">
+                                <div id="survey_metadata_fields"></div>
                             </div>
                         </div>
-                    </div>
-                    <div id="survey-metadata-accordion"
-                         class="ons-details ons-js-details ons-details--accordion"
-                         data-group="metadata-accordion">
-                        <div class="ons-details__heading ons-js-details-heading"
-                             role="button"
-                             data-save-state="true">
-                            <h2 class="ons-details__title">Survey Metadata</h2>
-                            <span class="ons-details__icon">
-                                <svg class="ons-icon"
-                                     viewBox="0 0 8 13"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     focusable="false"
-                                     fill="currentColor"
-                                     role="img"
-                                     title="ons-icon-chevron">
-                                    <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                </svg>
-                            </span>
-                        </div>
-                        <div id="survey-metadata-accordion-content"
-                             class="ons-details__content ons-js-details-content ons-u-mb-m">
-                            <div id="survey_metadata" class="ons-field">
-                                <p>Metadata fields will be loaded when you select a version and load a schema</p>
+                        <div id="cir-metadata-accordion"
+                            class="ons-details ons-js-details ons-details--accordion ons-u-vh"
+                            data-group="metadata-accordion">
+                            <div class="ons-details__heading ons-js-details-heading"
+                                id="cir_metadata_detail"
+                                role="button"
+                                data-save-state="true">
+                                <h2 class="ons-details__title">CIR Metadata</h2>
+                                <span class="ons-details__icon">
+                                    <svg class="ons-icon"
+                                        viewBox="0 0 8 13"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        focusable="false"
+                                        fill="currentColor"
+                                        role="img"
+                                        title="ons-icon-chevron">
+                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div id="cir-metadata-accordion-content"
+                                class="ons-details__content ons-js-details-content ons-u-mb-m">
+                                <div class="cir-metadata">
+                                    <div id="cir_metadata"></div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div id="sds-metadata-accordion"
-                         class="ons-details ons-js-details ons-details--accordion ons-u-vh"
-                         data-group="metadata-accordion">
-                        <div class="ons-details__heading ons-js-details-heading"
-                             role="button"
-                             id="sds_metadata_detail">
-                            <h2 class="ons-details__title">Supplementary Data</h2>
-                            <span class="ons-details__icon">
-                                <svg class="ons-icon"
-                                     viewBox="0 0 8 13"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     focusable="false"
-                                     fill="currentColor"
-                                     role="img"
-                                     title="ons-icon-chevron">
-                                    <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                </svg>
-                            </span>
+                        <div id="survey-metadata-accordion"
+                            class="ons-details ons-js-details ons-details--accordion"
+                            data-group="metadata-accordion">
+                            <div class="ons-details__heading ons-js-details-heading"
+                                role="button"
+                                data-save-state="true">
+                                <h2 class="ons-details__title">Survey Metadata</h2>
+                                <span class="ons-details__icon">
+                                    <svg class="ons-icon"
+                                        viewBox="0 0 8 13"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        focusable="false"
+                                        fill="currentColor"
+                                        role="img"
+                                        title="ons-icon-chevron">
+                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div id="survey-metadata-accordion-content"
+                                class="ons-details__content ons-js-details-content ons-u-mb-m">
+                                <div id="survey_metadata" class="ons-field">
+                                    <p>Metadata fields will be loaded when you select a version and load a schema</p>
+                                </div>
+                            </div>
                         </div>
-                        <div id="sds-metadata-accordion-content"
-                             class="ons-details__content ons-js-details-content ons-u-mb-m">
-                            <div id="supplementary_data"></div>
+                        <div id="sds-metadata-accordion"
+                            class="ons-details ons-js-details ons-details--accordion ons-u-vh"
+                            data-group="metadata-accordion">
+                            <div class="ons-details__heading ons-js-details-heading"
+                                role="button"
+                                id="sds_metadata_detail">
+                                <h2 class="ons-details__title">Supplementary Data</h2>
+                                <span class="ons-details__icon">
+                                    <svg class="ons-icon"
+                                        viewBox="0 0 8 13"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        focusable="false"
+                                        fill="currentColor"
+                                        role="img"
+                                        title="ons-icon-chevron">
+                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div id="sds-metadata-accordion-content"
+                                class="ons-details__content ons-js-details-content ons-u-mb-m">
+                                <div id="supplementary_data"></div>
+                            </div>
                         </div>
-                    </div>
-                    <div id="required-metadata-accordion"
-                         class="ons-details ons-js-details ons-details--accordion"
-                         data-group="metadata-accordion">
-                        <div class="ons-details__heading ons-js-details-heading"
-                             role="button"
-                             data-save-state="true">
-                            <h2 class="ons-details__title">Required Metadata</h2>
-                            <span class="ons-details__icon">
-                                <svg class="ons-icon"
-                                     viewBox="0 0 8 13"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     focusable="false"
-                                     fill="currentColor"
-                                     role="img"
-                                     title="ons-icon-chevron">
-                                    <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                </svg>
-                            </span>
-                        </div>
-                        <div id="required-metadata-accordion-content"
-                             class="ons-details__content ons-js-details-content ons-u-mb-m">
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="case_id">Case ID</label>
-                                <input id="case_id"
-                                       name="case_id"
-                                       type="text"
-                                       class="ons-input ons-input--text ons-input--w-20">
-                                <button type="button"
+                        <div id="required-metadata-accordion"
+                            class="ons-details ons-js-details ons-details--accordion"
+                            data-group="metadata-accordion">
+                            <div class="ons-details__heading ons-js-details-heading"
+                                role="button"
+                                data-save-state="true">
+                                <h2 class="ons-details__title">Required Metadata</h2>
+                                <span class="ons-details__icon">
+                                    <svg class="ons-icon"
+                                        viewBox="0 0 8 13"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        focusable="false"
+                                        fill="currentColor"
+                                        role="img"
+                                        title="ons-icon-chevron">
+                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
+                                    </svg>
+                                </span>
+                            </div>
+                            <div id="required-metadata-accordion-content"
+                                class="ons-details__content ons-js-details-content ons-u-mb-m">
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="case_id">Case ID</label>
+                                    <input id="case_id"
+                                        name="case_id"
+                                        type="text"
+                                        class="ons-input ons-input--text ons-input--w-20">
+                                    <button type="button"
                                         class="ons-btn ons-btn--small ons-btn--secondary ons-u-ml-xs"
                                         onclick="uuid('case_id')">
-                                    <span class="ons-btn__inner">
-                                        <img class="reload-button ons-icon--l"
-                                             src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
-                                             alt="Reload symbol">
-                                    </span>
-                                </button>
-                            </div>
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="collection_exercise_sid">Collection Exercise SID</label>
-                                <input id="collection_exercise_sid"
-                                       name="collection_exercise_sid"
-                                       type="text"
-                                       class="ons-input ons-input--text ons-input--w-20">
-                                <button type="button"
+                                        <span class="ons-btn__inner">
+                                            <img class="reload-button ons-icon--l"
+                                                src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
+                                                alt="Reload symbol">
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="collection_exercise_sid">Collection Exercise SID</label>
+                                    <input id="collection_exercise_sid"
+                                        name="collection_exercise_sid"
+                                        type="text"
+                                        class="ons-input ons-input--text ons-input--w-20">
+                                    <button type="button"
                                         class="ons-btn ons-btn--small ons-btn--secondary ons-u-ml-xs"
                                         onclick="uuid('collection_exercise_sid')">
-                                    <span class="ons-btn__inner">
-                                        <img class="reload-button ons-icon--l"
-                                             src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
-                                             alt="Reload symbol">
-                                    </span>
-                                </button>
-                            </div>
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="response_expires_at">Response Expiry Time</label>
-                                <input id="response_expires_at"
-                                       name="response_expires_at"
-                                       type="text"
-                                       class="ons-input ons-input--text ons-input--w-20">
-                                <button type="button"
+                                        <span class="ons-btn__inner">
+                                            <img class="reload-button ons-icon--l"
+                                                src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
+                                                alt="Reload symbol">
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="response_expires_at">Response Expiry Time</label>
+                                    <input id="response_expires_at"
+                                        name="response_expires_at"
+                                        type="text"
+                                        class="ons-input ons-input--text ons-input--w-20">
+                                    <button type="button"
                                         class="ons-btn ons-btn--small ons-btn--secondary ons-u-ml-xs"
                                         onclick="setResponseExpiry()">
-                                    <span class="ons-btn__inner">
-                                        <img class="reload-button ons-icon--l"
-                                             src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
-                                             alt="Reload symbol">
-                                    </span>
-                                </button>
-                            </div>
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="response_id">Response ID</label>
-                                <input id="response_id"
-                                       name="response_id"
-                                       type="text"
-                                       class="ons-input ons-input--text ons-input--w-20">
-                                <button type="button"
+                                        <span class="ons-btn__inner">
+                                            <img class="reload-button ons-icon--l"
+                                                src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
+                                                alt="Reload symbol">
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="response_id">Response ID</label>
+                                    <input id="response_id"
+                                        name="response_id"
+                                        type="text"
+                                        class="ons-input ons-input--text ons-input--w-20">
+                                    <button type="button"
                                         class="ons-btn ons-btn--small ons-btn--secondary ons-u-ml-xs"
                                         onclick="numericId()">
-                                    <span class="ons-btn__inner">
-                                        <img class="reload-button ons-icon--l"
-                                             src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
-                                             alt="Reload symbol">
-                                    </span>
-                                </button>
-                            </div>
-                            <div class="load-id-button">
-                                <button id="response-id-btn"
+                                        <span class="ons-btn__inner">
+                                            <img class="reload-button ons-icon--l"
+                                                src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg=="
+                                                alt="Reload symbol">
+                                        </span>
+                                    </button>
+                                </div>
+                                <div class="load-id-button">
+                                    <button id="response-id-btn"
                                         type="button"
                                         class="ons-btn ons-btn--small ons-btn--disabled ons-u-mt-xs"
                                         disabled
                                         onclick="loadResponseId()">
-                                    <span class="ons-btn__inner"><span class="ons-btn__text">Load Previous ID</span></span>
-                                </button>
+                                        <span class="ons-btn__inner"><span class="ons-btn__text">Load Previous ID</span></span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div id="runner-metadata-accordion"
-                         class="ons-details ons-js-details ons-details--accordion"
-                         data-group="metadata-accordion">
-                        <div class="ons-details__heading ons-js-details-heading"
-                             role="button"
-                             data-save-state="true">
-                            <h2 class="ons-details__title">Runner Metadata</h2>
-                            <span class="ons-details__icon">
-                                <svg class="ons-icon"
-                                     viewBox="0 0 8 13"
-                                     xmlns="http://www.w3.org/2000/svg"
-                                     focusable="false"
-                                     fill="currentColor"
-                                     role="img"
-                                     title="ons-icon-chevron">
-                                    <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                </svg>
-                            </span>
-                        </div>
-                        <div id="runner-metadata-accordion-content"
-                             class="ons-details__content ons-js-details-content">
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="exp">Token Expiry (seconds)</label>
-                                <input id="exp"
-                                       type="text"
-                                       value="1800"
-                                       class="ons-input ons-input--text ons-input--w-20">
+                        <div id="runner-metadata-accordion"
+                            class="ons-details ons-js-details ons-details--accordion"
+                            data-group="metadata-accordion">
+                            <div class="ons-details__heading ons-js-details-heading"
+                                role="button"
+                                data-save-state="true">
+                                <h2 class="ons-details__title">Runner Metadata</h2>
+                                <span class="ons-details__icon">
+                                    <svg class="ons-icon"
+                                        viewBox="0 0 8 13"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        focusable="false"
+                                        fill="currentColor"
+                                        role="img"
+                                        title="ons-icon-chevron">
+                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
+                                    </svg>
+                                </span>
                             </div>
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="language_code">Language</label>
-                                <select id="language_code"
+                            <div id="runner-metadata-accordion-content"
+                                class="ons-details__content ons-js-details-content">
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="exp">Token Expiry (seconds)</label>
+                                    <input id="exp"
+                                        type="text"
+                                        value="1800"
+                                        class="ons-input ons-input--text ons-input--w-20">
+                                </div>
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="language_code">Language</label>
+                                    <select id="language_code"
                                         name="language_code"
                                         class="ons-input ons-input--select ons-input--w-20">
-                                    <option value="en">English (en)</option>
-                                    <option value="cy">Cymraeg (cy)</option>
-                                    <option value="ga">Gaeilge (ga)</option>
-                                    <option value="eo">Ulstér Scotch (eo)</option>
-                                    <option value="">&lt;not set&gt;</option>
-                                </select>
-                            </div>
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="roles">Roles</label>
-                                <select id="roles"
+                                        <option value="en">English (en)</option>
+                                        <option value="cy">Cymraeg (cy)</option>
+                                        <option value="ga">Gaeilge (ga)</option>
+                                        <option value="eo">Ulstér Scotch (eo)</option>
+                                        <option value="">&lt;not set&gt;</option>
+                                    </select>
+                                </div>
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="roles">Roles</label>
+                                    <select id="roles"
                                         name="roles"
                                         class="ons-input ons-input--select ons-input--w-20">
-                                    <option value="flusher">flusher</option>
-                                    <option value="dumper" selected>dumper</option>
-                                </select>
-                            </div>
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="account_service_url">Account Service URL</label>
-                                <input id="account_service_url"
-                                       name="account_service_url"
-                                       type="text"
-                                       value="{{.AccountServiceURL}}"
-                                       class="ons-input ons-input--text ons-input--w-20">
-                            </div>
-                            <div class="ons-field ons-field--inline">
-                                <label class="ons-label" for="account_service_log_out_url">Account Service Log Out URL</label>
-                                <input id="account_service_log_out_url"
-                                       type="text"
-                                       value="{{.AccountServiceLogOutURL}}"
-                                       class="ons-input ons-input--text ons-input--w-20">
+                                        <option value="flusher">flusher</option>
+                                        <option value="dumper" selected>dumper</option>
+                                    </select>
+                                </div>
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="account_service_url">Account Service URL</label>
+                                    <input id="account_service_url"
+                                        name="account_service_url"
+                                        type="text"
+                                        value="{{ .AccountServiceURL }}"
+                                        class="ons-input ons-input--text ons-input--w-20">
+                                </div>
+                                <div class="ons-field ons-field--inline">
+                                    <label class="ons-label" for="account_service_log_out_url">Account Service Log Out URL</label>
+                                    <input id="account_service_log_out_url"
+                                        type="text"
+                                        value="{{ .AccountServiceLogOutURL }}"
+                                        class="ons-input ons-input--text ons-input--w-20">
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </form>
-    <script src="https://cdn.ons.gov.uk/sdc/design-system/70.0.7/scripts/main.js"></script>
-    <script>const sdsEnabled = "{{ .SdsEnabled }}" === "true"</script>
-    <script src="../static/javascript/launch.js"></script>
-</body>
+        </form>
+        <script src="https://cdn.ons.gov.uk/sdc/design-system/70.0.7/scripts/main.js"></script>
+        <script>const sdsEnabled = "{{ .SdsEnabled }}" === "true"</script>
+        <script src="../static/javascript/launch.js"></script>
+    </body>
 {{ end }}

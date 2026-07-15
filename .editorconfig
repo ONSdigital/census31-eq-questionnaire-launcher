@@ -1,0 +1,57 @@
+# http://editorconfig.org
+
+# A special property that should be specified at the top of the file outside of
+# any sections. Set to true to stop .editorconfig file search on current file
+root = true
+
+[*]
+# Indentation style
+# Possible values - tab, space
+indent_style = space
+
+# Character length allowed
+max_line_length = 160
+
+# Indentation size in single-spaced characters
+# Possible values - an integer, tab
+indent_size = 4
+
+# Line ending file format
+# Possible values - lf, crlf, cr
+end_of_line = lf
+
+# File character encoding
+# Possible values - latin1, utf-8, utf-16be, utf-16le
+charset = utf-8
+
+# Denotes whether to trim whitespace at the end of lines
+# Possible values - true, false
+trim_trailing_whitespace = true
+
+# Denotes whether file should end with a newline
+# Possible values - true, false
+insert_final_newline = true
+
+[*.{json}]
+insert_final_newline = false
+
+[*.{md,json,html,js,yml}]
+max_line_length = off
+
+[*.{js,yml,md}]
+indent_size = 2
+
+[*.go]
+indent_style = tab
+indent_size = tab
+
+[Makefile]
+indent_style = tab
+indent_size = tab
+
+[*.pem]
+trim_trailing_whitespace = false
+end_of_line = unset
+charset = unset
+indent_style = unset
+indent_size = unset

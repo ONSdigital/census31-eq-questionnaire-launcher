@@ -1,2 +1,2 @@
 #!/bin/bash
-go fmt $(go list ./... | grep -v '/vendor/')
+go fmt "$(go list ./... | grep -v '/vendor/')"

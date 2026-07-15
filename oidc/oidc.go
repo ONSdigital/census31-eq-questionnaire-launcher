@@ -28,7 +28,9 @@ func generateIdToken(clientIdName string) (oauth2.TokenSource, error) {
 	return nil, nil
 }
 
-func cachedWithTTL(fn func(audience string, clientIdName string) (oauth2.TokenSource, error)) func(audience string, clientIdName string) (oauth2.TokenSource, error) {
+func cachedWithTTL(
+	fn func(audience string, clientIdName string) (oauth2.TokenSource, error),
+) func(audience string, clientIdName string) (oauth2.TokenSource, error) {
 	validitySeconds, _ := strconv.Atoi(settings.Get("OIDC_TOKEN_VALIDITY_IN_SECONDS"))
 	leewaySeconds, _ := strconv.Atoi(settings.Get("OIDC_TOKEN_LEEWAY_IN_SECONDS"))
 

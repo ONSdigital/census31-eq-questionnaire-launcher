@@ -78,13 +78,15 @@ func GetAvailableSchemas() map[string][]LauncherSchema {
 	runnerSchemas := getAvailableSchemasFromRunner()
 	registerSchemas := getAvailableSchemasFromRegister()
 
-	allSchemas := append(runnerSchemas, registerSchemas...)
+	allSchemas := runnerSchemas
+	allSchemas = append(allSchemas, registerSchemas...)
 
 	sort.Sort(ByFilename(allSchemas))
 
 	schemasBySurveyType := map[string][]LauncherSchema{}
 	for _, schema := range allSchemas {
-		schemasBySurveyType[cases.Title(language.Und).String(schema.SurveyType)] = append(schemasBySurveyType[cases.Title(language.Und).String(schema.SurveyType)], schema)
+		surveyType := cases.Title(language.Und).String(schema.SurveyType)
+		schemasBySurveyType[surveyType] = append(schemasBySurveyType[surveyType], schema)
 	}
 
 	return schemasBySurveyType
@@ -107,9 +109,9 @@ func getAvailableSchemasFromRegister() []LauncherSchema {
 			log.Fatal("Do: ", err)
 			return []LauncherSchema{}
 		}
+		defer resp.Body.Close() //nolint:errcheck
 
 		responseBody, err := io.ReadAll(resp.Body)
-		resp.Body.Close()
 		if err != nil {
 			return schemaList
 		}
@@ -159,9 +161,9 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 		log.Print(err)
 		return ciMetadataList
 	}
+	defer resp.Body.Close() //nolint:errcheck
 
 	responseBody, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
 	if err != nil {
 		log.Print(err)
 		return ciMetadataList
@@ -191,7 +193,8 @@ func GetAvailableSchemasFromCIR() []CIMetadata {
 	sort.Slice(ciTestMetadataListSlice, func(i, j int) bool { return ciTestMetadataListSlice[i].Title < ciTestMetadataListSlice[j].Title })
 
 	// Finally join the list back together with business schemas appearing before test schemas
-	ciMetadataList = append(ciMetadataListSlice, ciTestMetadataListSlice...)
+	ciMetadataList = ciMetadataListSlice
+	ciMetadataList = append(ciMetadataList, ciTestMetadataListSlice...)
 	return ciMetadataList
 }
 
@@ -210,13 +213,13 @@ func getAvailableSchemasFromRunner() []LauncherSchema {
 	if err != nil {
 		return []LauncherSchema{}
 	}
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != 200 {
 		return []LauncherSchema{}
 	}
 
 	responseBody, err := io.ReadAll(resp.Body)
-	resp.Body.Close()
 	if err != nil {
 		return []LauncherSchema{}
 	}
@@ -270,11 +273,14 @@ func GetSupplementaryDataSets(surveyId string, periodId string) ([]DatasetMetada
 	if err != nil || (resp.StatusCode != 200 && resp.StatusCode != 404) {
 		return datasetList, errors.New("unable to fetch supplementary data")
 	}
+
 	if resp.StatusCode == 404 {
 		return datasetList, nil
 	}
+
+	defer resp.Body.Close() //nolint:errcheck
+
 	responseBody, err := io.ReadAll(resp.Body)
-	defer resp.Body.Close()
 	if err != nil {
 		return datasetList, errors.New("unable to read response body of supplementary data")
 	}
@@ -290,21 +296,22 @@ func GetSupplementaryDataSets(surveyId string, periodId string) ([]DatasetMetada
 func GetLauncherSchema(schemaName string, schemaUrl string, cirInstrumentId string) LauncherSchema {
 	var launcherSchema LauncherSchema
 
-	if schemaUrl != "" {
+	switch {
+	case schemaUrl != "":
 		log.Println("Getting schema by URL: " + schemaUrl)
 		launcherSchema = LauncherSchema{
 			URL:  schemaUrl,
 			Name: schemaName,
 		}
-	} else if cirInstrumentId != "" {
+	case cirInstrumentId != "":
 		log.Println("Searching for schema by CIR Instrument ID: " + cirInstrumentId)
 		launcherSchema = LauncherSchema{
 			CIRInstrumentID: cirInstrumentId,
 		}
-	} else if schemaName != "" {
+	case schemaName != "":
 		log.Println("Searching for schema by name: " + schemaName)
 		launcherSchema = FindSurveyByName(schemaName)
-	} else {
+	default:
 		panic("Either `schema_name` or `schema_url` or `cir_instrument_id` must be provided.")
 	}
 
