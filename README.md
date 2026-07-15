@@ -75,8 +75,9 @@ To install with Homebrew run:
 ```shell
 brew install golangci-lint
 ```
+
 To install with Conda run:
-```
+```shell
 conda install conda-forge::golangci-lint
 ```
 
