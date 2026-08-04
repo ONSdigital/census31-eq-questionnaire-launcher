@@ -60,30 +60,6 @@
                                 class="ons-input ons-input--text ons-input-type__input ons-input--w-20"
                                 onchange="setSchemaUrl(this)">
                         </div>
-                        <div class="ons-field ons-field--inline">
-                            <label class="ons-label" for="cir-schemas">CIR Schema</label>
-                            <select id="cir-schemas"
-                                name="cir_instrument_id"
-                                class="ons-input ons-input--select ons-input--w-20"
-                                onchange="setCirSchema(this);">
-                                <option selected disabled>Select Schema</option>
-                                {{ range $cirSchema := .CirSchemas }}
-                                    <option value="{{ $cirSchema.GUID }}"
-                                        data-schema-name="{{ $cirSchema.Title }}"
-                                        data-form-type="{{ $cirSchema.ClassifierValue }}"
-                                        data-version="{{ $cirSchema.CIVersion }}"
-                                        data-language="{{ $cirSchema.Language }}"
-                                        data-title="{{ $cirSchema.Title }}"
-                                        data-validator-version="{{ $cirSchema.ValidatorVersion }}">
-                                        {{ if HasPrefix $cirSchema.Title "Test" }}
-                                            schema_title: {{ $cirSchema.Title }}
-                                        {{ else }}
-                                            survey_id: {{ $cirSchema.SurveyID }} form_type: {{ $cirSchema.ClassifierValue }} ci_version: {{ $cirSchema.CIVersion }}
-                                        {{ end }}
-                                    </option>
-                                {{ end }}
-                            </select>
-                        </div>
                         <div class="ons-u-mt-s">
                             <button id="load-metadata-btn"
                                 type="button"
@@ -153,33 +129,6 @@
                                 <div id="survey_metadata_fields"></div>
                             </div>
                         </div>
-                        <div id="cir-metadata-accordion"
-                            class="ons-details ons-js-details ons-details--accordion ons-u-vh"
-                            data-group="metadata-accordion">
-                            <div class="ons-details__heading ons-js-details-heading"
-                                id="cir_metadata_detail"
-                                role="button"
-                                data-save-state="true">
-                                <h2 class="ons-details__title">CIR Metadata</h2>
-                                <span class="ons-details__icon">
-                                    <svg class="ons-icon"
-                                        viewBox="0 0 8 13"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        focusable="false"
-                                        fill="currentColor"
-                                        role="img"
-                                        title="ons-icon-chevron">
-                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                    </svg>
-                                </span>
-                            </div>
-                            <div id="cir-metadata-accordion-content"
-                                class="ons-details__content ons-js-details-content ons-u-mb-m">
-                                <div class="cir-metadata">
-                                    <div id="cir_metadata"></div>
-                                </div>
-                            </div>
-                        </div>
                         <div id="survey-metadata-accordion"
                             class="ons-details ons-js-details ons-details--accordion"
                             data-group="metadata-accordion">
@@ -204,30 +153,6 @@
                                 <div id="survey_metadata" class="ons-field">
                                     <p>Metadata fields will be loaded when you select a version and load a schema</p>
                                 </div>
-                            </div>
-                        </div>
-                        <div id="sds-metadata-accordion"
-                            class="ons-details ons-js-details ons-details--accordion ons-u-vh"
-                            data-group="metadata-accordion">
-                            <div class="ons-details__heading ons-js-details-heading"
-                                role="button"
-                                id="sds_metadata_detail">
-                                <h2 class="ons-details__title">Supplementary Data</h2>
-                                <span class="ons-details__icon">
-                                    <svg class="ons-icon"
-                                        viewBox="0 0 8 13"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        focusable="false"
-                                        fill="currentColor"
-                                        role="img"
-                                        title="ons-icon-chevron">
-                                        <path d="M5.74,14.28l-.57-.56a.5.5,0,0,1,0-.71h0l5-5-5-5a.5.5,0,0,1,0-.71h0l.57-.56a.5.5,0,0,1,.71,0h0l5.93,5.93a.5.5,0,0,1,0,.7L6.45,14.28a.5.5,0,0,1-.71,0Z" transform="translate(-5.02 -1.59)" />
-                                    </svg>
-                                </span>
-                            </div>
-                            <div id="sds-metadata-accordion-content"
-                                class="ons-details__content ons-js-details-content ons-u-mb-m">
-                                <div id="supplementary_data"></div>
                             </div>
                         </div>
                         <div id="required-metadata-accordion"
@@ -397,7 +322,6 @@
             </div>
         </form>
         <script src="https://cdn.ons.gov.uk/sdc/design-system/70.0.7/scripts/main.js"></script>
-        <script>const sdsEnabled = "{{ .SdsEnabled }}" === "true"</script>
         <script src="../static/javascript/launch.js"></script>
     </body>
 {{ end }}

@@ -110,12 +110,5 @@ To update the design system version, you need to update the version within the C
 | GO_LAUNCH_A_SURVEY_LISTEN_PORT | Host port to listen on                                              | 8000                                                                   |
 | SURVEY_RUNNER_URL              | URL of Questionnaire Runner to re-direct to when launching a survey | `http://localhost:5000`                                                |
 | SURVEY_REGISTER_URL            | URL of eq-survey-register to load schema list from                  | `http://localhost:8080`                                                |
-| SDS_API_BASE_URL               | URL of the SDS API to fetch supplementary data from                 | `http://localhost:5003`                                                |
 | JWT_ENCRYPTION_KEY_PATH        | Path to the JWT Encryption Key (PEM format)                         | jwt-test-keys/sdc-user-authentication-encryption-sr-public-key.pem     |
 | JWT_SIGNING_KEY_PATH           | Path to the JWT Signing Key (PEM format)                            | jwt-test-keys/sdc-user-authentication-signing-launcher-private-key.pem |
-| OIDC_TOKEN_BACKEND             | The backend to use when fetching the Open ID Connect token          | gcp                                                                    |
-| OIDC_TOKEN_VALIDITY_IN_SECONDS | The time in seconds an OIDC token is valid                          | 3600                                                                   |
-| OIDC_TOKEN_LEEWAY_IN_SECONDS   | The leeway to use when validating OIDC tokens                       | 300                                                                    |
-| SDS_OAUTH2_CLIENT_ID           | The OAuth2 Client ID used when setting up IAP on the SDS            |                                                                        |
-| CIR_OAUTH2_CLIENT_ID           | The OAuth2 Client ID used when setting up IAP on the CIR            |                                                                        |
-| SDS_ENABLED_IN_ENV             | Signifies if the SDS service is enabled in the environment          | true                                                                   |
