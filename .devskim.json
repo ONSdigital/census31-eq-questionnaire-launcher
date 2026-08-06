@@ -1,0 +1,8 @@
+{
+    "Globs": [
+        "**/.git/**",
+        "**/megalinter-reports/**",
+        "settings/settings.go",
+        "jwt-test-keys/**"
+    ]
+}
