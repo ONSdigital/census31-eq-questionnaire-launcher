@@ -205,7 +205,7 @@ func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchem
 // GenerateJwtClaims creates a jwtClaim needed to generate a token
 func GenerateJwtClaims() (jwtClaims map[string]interface{}) {
 	issued := time.Now()
-	expires := issued.Add(time.Minute * 10) // TODO: Support custom exp: r.PostForm.Get("exp")
+	expires := issued.Add(time.Minute * 10) // Future enhancement: support custom exp via request payload.
 
 	jwtClaims = make(map[string]interface{})
 
