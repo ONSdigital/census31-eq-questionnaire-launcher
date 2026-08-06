@@ -19,6 +19,7 @@ ENABLE:
   - JSON
   - MAKEFILE
   - MARKDOWN
+  - REPOSITORY
   - YAML
 
 DISABLE_LINTERS:
@@ -31,6 +32,11 @@ PARALLEL_PROCESS_NUMBER: 1
 FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
 GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
 GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]
+
+# Test-only key material is intentionally committed for local launcher flows.
+REPOSITORY_GITLEAKS_FILTER_REGEX_EXCLUDE: (jwt-test-keys/.*)
+REPOSITORY_KINGFISHER_FILTER_REGEX_EXCLUDE: (jwt-test-keys/.*)
+REPOSITORY_SECRETLINT_FILTER_REGEX_EXCLUDE: (jwt-test-keys/.*)
 
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN

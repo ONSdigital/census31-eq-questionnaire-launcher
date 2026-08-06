@@ -2,7 +2,7 @@ package authentication
 
 import (
 	"crypto/rsa"
-	"crypto/sha1"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -73,7 +73,7 @@ func loadEncryptionKey() (*PublicKeyResult, *KeyLoadError) {
 		return nil, &KeyLoadError{Op: "parse", Err: "Failed to parse encryption key PEM"}
 	}
 
-	kid := fmt.Sprintf("%x", sha1.Sum(keyData))
+	kid := fmt.Sprintf("%x", sha256.Sum256(keyData))
 
 	publicKey, ok := pub.(*rsa.PublicKey)
 	if !ok {
@@ -105,7 +105,7 @@ func loadSigningKey() (*PrivateKeyResult, *KeyLoadError) {
 		Type:  "PUBLIC KEY",
 		Bytes: PublicKey,
 	})
-	kid := fmt.Sprintf("%x", sha1.Sum(pubBytes))
+	kid := fmt.Sprintf("%x", sha256.Sum256(pubBytes))
 
 	return &PrivateKeyResult{privateKey, kid}, nil
 }

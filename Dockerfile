@@ -27,6 +27,14 @@ COPY static/ /static/
 COPY templates/ /templates/
 COPY jwt-test-keys /jwt-test-keys/
 
+# Create and switch to a non-root user for runtime.
+RUN addgroup -S app && adduser -S -G app app \
+    && chown -R app:app /app /static /templates /jwt-test-keys
+
 EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD ["/bin/sh", "-c", "pidof census31-eq-questionnaire-launcher >/dev/null || exit 1"]
+
+USER app
 
 ENTRYPOINT ["sh", "/app/docker-entrypoint.sh"]
