@@ -24,6 +24,7 @@ ENABLE:
 
 DISABLE_LINTERS:
   - HTML_HTMLHINT # HTMLHint was disabled as HTMLHint doesn't understand GoLang syntax so there was a lot of false positives
+  - REPOSITORY_KINGFISHER # Secret scanning already covered by gitleaks and secretlint
 
 FORMATTERS_DISABLE_ERRORS: false # Ensures code is actually fixable when using `make megalint-apply`
 SHOW_ELAPSED_TIME: true # Displays execution time for each linter
@@ -32,7 +33,6 @@ PARALLEL_PROCESS_NUMBER: 1
 FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
 GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
 GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]
-REPOSITORY_KINGFISHER_ARGUMENTS: ["--exclude", "jwt-test-keys/**"]
 
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN
