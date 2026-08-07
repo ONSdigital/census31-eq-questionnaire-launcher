@@ -52,6 +52,8 @@ REPOSITORY_OSV_SCANNER_ARGUMENTS:
   - "--experimental-exclude=megalinter-reports"
   - "--no-call-analysis=go"
 
+REPOSITORY_GITLEAKS_CONFIG_FILE: .gitleaks.toml
+
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN
 

@@ -1,0 +1,10 @@
+title = "Project Gitleaks Configuration"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Ignore test fixture keys"
+paths = [
+  '''^jwt-test-keys/.*''',
+]
