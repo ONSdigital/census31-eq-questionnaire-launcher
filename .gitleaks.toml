@@ -6,5 +6,5 @@ useDefault = true
 [[allowlists]]
 description = "Ignore test fixture keys"
 paths = [
-  '''^jwt-test-keys/.*''',
+    '''^jwt-test-keys/.*''',
 ]
