@@ -2,7 +2,7 @@ package authentication
 
 import (
 	"crypto/rsa"
-	"crypto/sha256"
+	"crypto/sha1"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -18,10 +18,10 @@ import (
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
-	"github.com/gofrs/uuid"
 	"github.com/go-jose/go-jose/v4"
 	"github.com/go-jose/go-jose/v4/json"
 	"github.com/go-jose/go-jose/v4/jwt"
+	"github.com/gofrs/uuid"
 
 	"bytes"
 	"log"
@@ -73,7 +73,8 @@ func loadEncryptionKey() (*PublicKeyResult, *KeyLoadError) {
 		return nil, &KeyLoadError{Op: "parse", Err: "Failed to parse encryption key PEM"}
 	}
 
-	kid := fmt.Sprintf("%x", sha256.Sum256(keyData))
+	// Keep SHA-1 KID derivation for compatibility with runner key lookup.
+	kid := fmt.Sprintf("%x", sha1.Sum(keyData))
 
 	publicKey, ok := pub.(*rsa.PublicKey)
 	if !ok {
@@ -105,7 +106,8 @@ func loadSigningKey() (*PrivateKeyResult, *KeyLoadError) {
 		Type:  "PUBLIC KEY",
 		Bytes: PublicKey,
 	})
-	kid := fmt.Sprintf("%x", sha256.Sum256(pubBytes))
+	// Keep SHA-1 KID derivation for compatibility with runner key lookup.
+	kid := fmt.Sprintf("%x", sha1.Sum(pubBytes))
 
 	return &PrivateKeyResult{privateKey, kid}, nil
 }
