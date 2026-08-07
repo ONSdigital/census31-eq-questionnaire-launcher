@@ -19,9 +19,9 @@ import (
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
 	"github.com/gofrs/uuid"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/json"
-	"gopkg.in/square/go-jose.v2/jwt"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/json"
+	"github.com/go-jose/go-jose/v4/jwt"
 
 	"bytes"
 	"log"
@@ -362,7 +362,7 @@ func generateTokenFromClaims(cl map[string]interface{}) (string, *TokenError) {
 		return "", &TokenError{Desc: "Error creating JWT signer", From: err}
 	}
 
-	token, err := jwt.SignedAndEncrypted(signer, encryptor).Claims(cl).CompactSerialize()
+	token, err := jwt.SignedAndEncrypted(signer, encryptor).Claims(cl).Serialize()
 
 	if err != nil {
 		return "", &TokenError{Desc: "Error signing and encrypting JWT", From: err}

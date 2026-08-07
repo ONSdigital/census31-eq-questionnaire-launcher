@@ -31,8 +31,26 @@ SHOW_ELAPSED_TIME: true # Displays execution time for each linter
 FLAVOR_SUGGESTIONS: false # Disables suggestions to use different MegaLinter flavors
 PARALLEL_PROCESS_NUMBER: 1
 FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
+GO_GOLANGCI_LINT_CLI_LINT_MODE: project
 GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
+GO_GOLANGCI_LINT_PRE_COMMANDS:
+  - command: go mod tidy
+    cwd: workspace
+  - command: go mod download
+    cwd: workspace
 GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]
+
+REPOSITORY_GRYPE_ARGUMENTS:
+  - "--exclude"
+  - "./megalinter-reports/**"
+
+REPOSITORY_TRIVY_ARGUMENTS:
+  - "--skip-dirs"
+  - "megalinter-reports"
+
+REPOSITORY_OSV_SCANNER_ARGUMENTS:
+  - "--experimental-exclude=megalinter-reports"
+  - "--no-call-analysis=go"
 
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN
