@@ -24,10 +24,10 @@ ENABLE:
 
 DISABLE_LINTERS:
   - HTML_HTMLHINT # False positives with Go template syntax
-  - REPOSITORY_KINGFISHER # Secret scanning covered by betterleaks (7.24s)
-  - REPOSITORY_GITLEAKS # Deprecated in v9.6.0 in favour of betterleaks (same author, 98.6% vs 70.4% recall)
+  - REPOSITORY_KINGFISHER # Secret scanning covered by secretlint + trufflehog (7.24s)
+  - REPOSITORY_GITLEAKS # Deprecated in v9.6.0; pattern-based coverage kept via secretlint
+  - REPOSITORY_BETTERLEAKS # Overlaps secretlint; secretlint configured via .secretlintignore for this repo
   - REPOSITORY_GRYPE # Vulnerability coverage overlaps trivy + osv-scanner with much higher runtime (46.51s)
-  - REPOSITORY_SECRETLINT # Overlaps gitleaks; secret scanning kept via faster targeted tools (1.41s)
   - REPOSITORY_SYFT # SBOM generation covered by trivy-sbom (2.85s)
   - GO_REVIVE # Linting covered by golangci-lint which runs revive internally (2.11s)
   - JSON_V8R # Makes network calls to SchemaStore; covered by jsonlint + npm-package-json-lint (13.6s)
@@ -53,8 +53,6 @@ REPOSITORY_TRIVY_ARGUMENTS:
 REPOSITORY_OSV_SCANNER_ARGUMENTS:
   - "--experimental-exclude=megalinter-reports"
   - "--no-call-analysis=go"
-
-REPOSITORY_BETTERLEAKS_CONFIG_FILE: .gitleaks.toml # betterleaks is fully config-compatible with gitleaks
 
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN
