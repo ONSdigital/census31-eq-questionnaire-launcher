@@ -23,8 +23,15 @@ ENABLE:
   - YAML
 
 DISABLE_LINTERS:
-  - HTML_HTMLHINT # HTMLHint was disabled as HTMLHint doesn't understand GoLang syntax so there was a lot of false positives
-  - REPOSITORY_KINGFISHER # Secret scanning already covered by gitleaks and secretlint
+  - HTML_HTMLHINT # False positives with Go template syntax
+  - REPOSITORY_KINGFISHER # Secret scanning covered by betterleaks (7.24s)
+  - REPOSITORY_GITLEAKS # Deprecated in v9.6.0 in favour of betterleaks (same author, 98.6% vs 70.4% recall)
+  - REPOSITORY_GRYPE # Vulnerability coverage overlaps trivy + osv-scanner with much higher runtime (46.51s)
+  - REPOSITORY_SECRETLINT # Overlaps gitleaks; secret scanning kept via faster targeted tools (1.41s)
+  - REPOSITORY_SYFT # SBOM generation covered by trivy-sbom (2.85s)
+  - GO_REVIVE # Linting covered by golangci-lint which runs revive internally (2.11s)
+  - JSON_V8R # Makes network calls to SchemaStore; covered by jsonlint + npm-package-json-lint (13.6s)
+  - YAML_V8R # Makes network calls to SchemaStore; syntax and workflow coverage via yamllint + actionlint (3.18s)
 
 FORMATTERS_DISABLE_ERRORS: false # Ensures code is actually fixable when using `make megalint-apply`
 SHOW_ELAPSED_TIME: true # Displays execution time for each linter
@@ -38,11 +45,6 @@ GO_GOLANGCI_LINT_PRE_COMMANDS:
     cwd: workspace
   - command: go mod download
     cwd: workspace
-GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]
-
-REPOSITORY_GRYPE_ARGUMENTS:
-  - "--exclude"
-  - "./megalinter-reports/**"
 
 REPOSITORY_TRIVY_ARGUMENTS:
   - "--skip-dirs"
@@ -52,7 +54,7 @@ REPOSITORY_OSV_SCANNER_ARGUMENTS:
   - "--experimental-exclude=megalinter-reports"
   - "--no-call-analysis=go"
 
-REPOSITORY_GITLEAKS_CONFIG_FILE: .gitleaks.toml
+REPOSITORY_BETTERLEAKS_CONFIG_FILE: .gitleaks.toml # betterleaks is fully config-compatible with gitleaks
 
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN
