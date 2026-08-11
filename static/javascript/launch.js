@@ -1,526 +1,539 @@
-function escapeHtml (unsafe) {
-  return unsafe.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;')
+function escapeHtml(unsafe) {
+  return unsafe.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
 
-function uuidv4 () {
-  if (typeof crypto !== 'undefined') {
-    if (typeof crypto.randomUUID === 'function') {
-      return crypto.randomUUID()
+function uuidv4() {
+  if (typeof crypto !== "undefined") {
+    if (typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
     }
 
-    if (typeof crypto.getRandomValues === 'function') {
-      const bytes = new Uint8Array(16)
-      crypto.getRandomValues(bytes)
+    if (typeof crypto.getRandomValues === "function") {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
 
-      bytes[6] = (bytes[6] & 0x0f) | 0x40
-      bytes[8] = (bytes[8] & 0x3f) | 0x80
+      bytes[6] = (bytes[6] & 0x0f) | 0x40;
+      bytes[8] = (bytes[8] & 0x3f) | 0x80;
 
-      const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, '0'))
-      return `${hex.slice(0, 4).join('')}-${hex.slice(4, 6).join('')}-${hex.slice(6, 8).join('')}-${hex.slice(8, 10).join('')}-${hex.slice(10, 16).join('')}`
+      const hex = [...bytes].map((byte) => byte.toString(16).padStart(2, "0"));
+      return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10, 16).join("")}`;
     }
   }
 
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (char) => {
-    const randomNibble = Math.floor(Math.random() * 16)
-    const value = char === 'x' ? randomNibble : (randomNibble & 0x3) | 0x8
-    return value.toString(16)
-  })
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (char) => {
+    const randomNibble = Math.floor(Math.random() * 16);
+    const value = char === "x" ? randomNibble : (randomNibble & 0x3) | 0x8;
+    return value.toString(16);
+  });
 }
 
 // store fetch so it only needs to be re-done if the survey changes
-let supplementaryDataSets = null
+let supplementaryDataSets = null;
 
 // We always need survey_id from top-level schema metadata for SDS retrieval
-let schemaSurveyId = null
+let schemaSurveyId = null;
 
-const supplementaryDataSection = document.querySelector('#supplementary_data')
-const loadMetadataButton = document.querySelector('#load-metadata-btn')
-const remoteSchemaSurveyType = document.querySelector('#remote-schema-survey-type')
-const launchButton = document.querySelector('#launch-btn')
-const flushButton = document.querySelector('#flush-btn')
+const supplementaryDataSection = document.querySelector("#supplementary_data");
+const loadMetadataButton = document.querySelector("#load-metadata-btn");
+const remoteSchemaSurveyType = document.querySelector("#remote-schema-survey-type");
+const launchButton = document.querySelector("#launch-btn");
+const flushButton = document.querySelector("#flush-btn");
 
-let surveyType
-let cirSchema
-let schemaUrl
+let surveyType;
+let cirSchema;
+let schemaUrl;
 
-function clearSurveyMetadataFields () {
-  document.querySelector('#survey-type-metadata-accordion').classList.add('ons-u-vh')
-  document.querySelector('#survey_metadata_fields').innerHTML = ''
-  setTabIndex('survey_type_metadata_detail', -1)
-  showMetadataAccordion('sds', false)
+function clearSurveyMetadataFields() {
+  document.querySelector("#survey-type-metadata-accordion").classList.add("ons-u-vh");
+  document.querySelector("#survey_metadata_fields").innerHTML = "";
+  setTabIndex("survey_type_metadata_detail", -1);
+  showMetadataAccordion("sds", false);
 }
 
-function toggleLoadMetadataButton () {
+function toggleLoadMetadataButton() {
   if (surveyType && (cirSchema || schemaUrl)) {
-    enableButtons([loadMetadataButton])
+    enableButtons([loadMetadataButton]);
   } else {
-    disableButtons([loadMetadataButton])
+    disableButtons([loadMetadataButton]);
   }
 }
 
-function setSurveyType () {
-  surveyType = remoteSchemaSurveyType.value
-  localStorage.setItem('survey_type', surveyType)
-  setLaunchType('remote')
-  toggleLoadMetadataButton()
+function setSurveyType() {
+  surveyType = remoteSchemaSurveyType.value;
+  localStorage.setItem("survey_type", surveyType);
+  setLaunchType("remote");
+  toggleLoadMetadataButton();
 }
 
-function setSchemaUrl () {
-  schemaUrl = document.querySelector('#remote-schema-url').value
-  localStorage.setItem('schema_url', schemaUrl)
-  setLaunchType('url')
-  toggleLoadMetadataButton()
+function setSchemaUrl() {
+  schemaUrl = document.querySelector("#remote-schema-url").value;
+  localStorage.setItem("schema_url", schemaUrl);
+  setLaunchType("url");
+  toggleLoadMetadataButton();
 }
 
-function setCirSchema () {
-  cirSchema = document.querySelector('#cir-schemas').value
-  localStorage.setItem('cir_schema', cirSchema)
-  setLaunchType('cir')
-  toggleLoadMetadataButton()
+function setCirSchema() {
+  cirSchema = document.querySelector("#cir-schemas").value;
+  localStorage.setItem("cir_schema", cirSchema);
+  setLaunchType("cir");
+  toggleLoadMetadataButton();
 }
 
-function setLaunchType (launchType) {
-  const schemaName = document.querySelector('#schema_name')
-  const remoteSchemaUrl = document.querySelector('#remote-schema-url')
-  const cirSchemas = document.querySelector('#cir-schemas')
-  const remoteSchemaSurveyType = document.querySelector('#remote-schema-survey-type')
+function setLaunchType(launchType) {
+  const schemaName = document.querySelector("#schema_name");
+  const remoteSchemaUrl = document.querySelector("#remote-schema-url");
+  const cirSchemas = document.querySelector("#cir-schemas");
+  const remoteSchemaSurveyType = document.querySelector("#remote-schema-survey-type");
 
-  if (['cir', 'remote', 'url'].includes(launchType)) {
+  if (["cir", "remote", "url"].includes(launchType)) {
     if (schemaName.selectedIndex) {
-      clearSurveyMetadataFields()
-      disableButtons([launchButton, flushButton])
-      schemaName.selectedIndex = 0
-      localStorage.removeItem('schema_name')
+      clearSurveyMetadataFields();
+      disableButtons([launchButton, flushButton]);
+      schemaName.selectedIndex = 0;
+      localStorage.removeItem("schema_name");
     }
 
-    if (launchType === 'cir') {
-      remoteSchemaUrl.value = ''
-      localStorage.removeItem('schema_url')
-      toggleLoadMetadataButton()
-    } else if (launchType === 'url') {
-      cirSchemas.selectedIndex = 0
-      cirSchema = null
-      localStorage.removeItem('cir_schema')
-      toggleLoadMetadataButton()
+    if (launchType === "cir") {
+      remoteSchemaUrl.value = "";
+      localStorage.removeItem("schema_url");
+      toggleLoadMetadataButton();
+    } else if (launchType === "url") {
+      cirSchemas.selectedIndex = 0;
+      cirSchema = null;
+      localStorage.removeItem("cir_schema");
+      toggleLoadMetadataButton();
     }
   }
-  if (launchType === 'name') {
-    remoteSchemaUrl.value = ''
-    cirSchemas.selectedIndex = 0
-    remoteSchemaSurveyType.selectedIndex = 0
-    cirSchema = null
-    surveyType = null
-    schemaUrl = null
-    localStorage.removeItem('schema_url')
-    localStorage.removeItem('cir_schema')
-    localStorage.removeItem('survey_type')
-    document.querySelector('#language_code').disabled = false
-    disableButtons([loadMetadataButton])
+  if (launchType === "name") {
+    remoteSchemaUrl.value = "";
+    cirSchemas.selectedIndex = 0;
+    remoteSchemaSurveyType.selectedIndex = 0;
+    cirSchema = null;
+    surveyType = null;
+    schemaUrl = null;
+    localStorage.removeItem("schema_url");
+    localStorage.removeItem("cir_schema");
+    localStorage.removeItem("survey_type");
+    document.querySelector("#language_code").disabled = false;
+    disableButtons([loadMetadataButton]);
   }
 }
 
-function showMetadataAccordion (type, show) {
-  const accordionElement = document.querySelector(`#${type}-metadata-accordion`)
+function showMetadataAccordion(type, show) {
+  const accordionElement = document.querySelector(`#${type}-metadata-accordion`);
   if (show) {
-    accordionElement.classList.remove('ons-u-vh')
+    accordionElement.classList.remove("ons-u-vh");
   } else {
-    accordionElement.classList.add('ons-u-vh')
+    accordionElement.classList.add("ons-u-vh");
   }
 }
 
-function enableButtons (buttons) {
+function enableButtons(buttons) {
   for (const button of buttons) {
-    button.classList.remove('ons-btn--disabled')
-    button.disabled = false
+    button.classList.remove("ons-btn--disabled");
+    button.disabled = false;
   }
 }
 
-function disableButtons (buttons) {
+function disableButtons(buttons) {
   for (const button of buttons) {
-    button.classList.add('ons-btn--disabled')
-    button.disabled = true
+    button.classList.add("ons-btn--disabled");
+    button.disabled = true;
   }
 }
 
-function includeSurveyMetadataFields (schemaName, surveyTypeName) {
-  const formTypeValue = schemaName.split('_').slice(1).join('_')
-  document.querySelector('#survey-type-metadata-accordion').classList.remove('ons-u-vh')
-  document.querySelector('.survey_heading').innerHTML = `${escapeHtml(surveyTypeName)} Survey Metadata`
+function includeSurveyMetadataFields(schemaName, surveyTypeName) {
+  const formTypeValue = schemaName.split("_").slice(1).join("_");
+  document.querySelector("#survey-type-metadata-accordion").classList.remove("ons-u-vh");
+  document.querySelector(".survey_heading").innerHTML = `${escapeHtml(surveyTypeName)} Survey Metadata`;
 
-  const surveyMetadataFields = document.querySelector('#survey_metadata_fields')
-  const div = document.createElement('div')
-  div.className = 'ons-field ons-field--inline'
+  const surveyMetadataFields = document.querySelector("#survey_metadata_fields");
+  const div = document.createElement("div");
+  div.className = "ons-field ons-field--inline";
   div.innerHTML = `
     <label class="ons-label" for="form_type">form_type</label>
     <input id="form_type" name="form_type" type="text" class="ons-input ons-input--text ons-input-type__input">
-    `
-  div.querySelector('input').value = formTypeValue
-  surveyMetadataFields.textContent = ''
-  surveyMetadataFields.appendChild(div)
-  setTabIndex('survey_type_metadata_detail', 0)
-  showMetadataAccordion('sds', true)
+    `;
+  div.querySelector("input").value = formTypeValue;
+  surveyMetadataFields.textContent = "";
+  surveyMetadataFields.appendChild(div);
+  setTabIndex("survey_type_metadata_detail", 0);
+  showMetadataAccordion("sds", true);
 }
 
-function loadMetadataForSchemaName () {
-  const schemaName = document.querySelector('#schema_name').value
-  localStorage.setItem('schema_name', schemaName)
+function loadMetadataForSchemaName() {
+  const schemaName = document.querySelector("#schema_name").value;
+  localStorage.setItem("schema_name", schemaName);
 
-  if (schemaName !== 'Select Schema') {
-    const surveyType = document.querySelector(`#schema_name option[value="${schemaName}"]`).dataset.surveyType
-    loadSurveyMetadata(schemaName, surveyType)
-    loadSchemaMetadata(schemaName, null)
+  if (schemaName !== "Select Schema") {
+    const surveyType = document.querySelector(`#schema_name option[value="${schemaName}"]`).dataset.surveyType;
+    loadSurveyMetadata(schemaName, surveyType);
+    loadSchemaMetadata(schemaName, null);
   }
 }
 
-function loadMetadataForRemoteSchema () {
-  schemaUrl = document.querySelector('#remote-schema-url').value
+function loadMetadataForRemoteSchema() {
+  schemaUrl = document.querySelector("#remote-schema-url").value;
 
-  const cirSchemaDropdown = document.querySelector('#cir-schemas')
-  const cirInstrumentId = cirSchemaDropdown.selectedIndex ? cirSchemaDropdown.value : null
+  const cirSchemaDropdown = document.querySelector("#cir-schemas");
+  const cirInstrumentId = cirSchemaDropdown.selectedIndex ? cirSchemaDropdown.value : null;
 
-  let schemaName = null
+  let schemaName = null;
 
-  if (schemaUrl && !schemaUrl.endsWith('.json')) {
-    alert("Schema URL is not valid URL must end with '.json'")
-    return false
+  if (schemaUrl && !schemaUrl.endsWith(".json")) {
+    alert("Schema URL is not valid URL must end with '.json'");
+    return false;
   }
 
   if (!remoteSchemaSurveyType.selectedIndex) {
-    alert('Select a Survey Type.')
-    return false
+    alert("Select a Survey Type.");
+    return false;
   }
 
   if (!schemaUrl && !cirInstrumentId) {
-    alert('Enter a Schema URL or select a CIR Schema.')
-    return false
+    alert("Enter a Schema URL or select a CIR Schema.");
+    return false;
   }
 
   if (schemaUrl) {
-    schemaName = schemaUrl.split('/').slice(-1)[0].split('.json')[0]
-    document.querySelector('#language_code').disabled = false
+    schemaName = schemaUrl.split("/").slice(-1)[0].split(".json")[0];
+    document.querySelector("#language_code").disabled = false;
   } else {
-    const cirSchema = cirSchemaDropdown.options[cirSchemaDropdown.selectedIndex]
-    schemaName = cirSchema.getAttribute('data-schema-name')
-    const language = cirSchema.getAttribute('data-language')
+    const cirSchema = cirSchemaDropdown.options[cirSchemaDropdown.selectedIndex];
+    schemaName = cirSchema.getAttribute("data-schema-name");
+    const language = cirSchema.getAttribute("data-language");
 
-    showCIRMetadata(cirInstrumentId, cirSchema)
+    showCIRMetadata(cirInstrumentId, cirSchema);
 
     // cir schemas are for a specific language, so populate and disable choosing it
-    populateDropDownWithValue('#language_code', language)
-    document.querySelector('#language_code').disabled = true
+    populateDropDownWithValue("#language_code", language);
+    document.querySelector("#language_code").disabled = true;
   }
 
-  loadSurveyMetadata(schemaName, surveyType)
-  loadSchemaMetadata(schemaName, schemaUrl, cirInstrumentId)
-  enableButtons([launchButton, flushButton])
+  loadSurveyMetadata(schemaName, surveyType);
+  loadSchemaMetadata(schemaName, schemaUrl, cirInstrumentId);
+  enableButtons([launchButton, flushButton]);
 }
 
-function loadSurveyMetadata (schemaName, surveyTypeName) {
-  if (surveyTypeName.toLowerCase() === 'test' || surveyTypeName.toLowerCase() === 'social') {
-    clearSurveyMetadataFields()
+function loadSurveyMetadata(schemaName, surveyTypeName) {
+  if (surveyTypeName.toLowerCase() === "test" || surveyTypeName.toLowerCase() === "social") {
+    clearSurveyMetadataFields();
   } else {
-    includeSurveyMetadataFields(schemaName, surveyTypeName)
+    includeSurveyMetadataFields(schemaName, surveyTypeName);
   }
 }
 
-async function getDataAsync (queryParam) {
+async function getDataAsync(queryParam) {
   return new Promise((resolve, reject) => {
-    const xhttp = new XMLHttpRequest()
+    const xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
       if (this.readyState === 4) {
         if (this.status === 200) {
-          resolve(JSON.parse(this.responseText))
+          resolve(JSON.parse(this.responseText));
         } else {
-          alert(`Request failed. ${this.responseText}`)
-          reject(new Error(`Request failed. ${this.responseText}`))
+          alert(`Request failed. ${this.responseText}`);
+          reject(new Error(`Request failed. ${this.responseText}`));
         }
       }
-    }
-    xhttp.open('GET', queryParam, true)
-    xhttp.send()
-  })
+    };
+    xhttp.open("GET", queryParam, true);
+    xhttp.send();
+  });
 }
 
-function getLabelFor (fieldName) {
-  return `<label class="ons-label" for="${fieldName}">${fieldName}</label>`
+function getLabelFor(fieldName) {
+  return `<label class="ons-label" for="${fieldName}">${fieldName}</label>`;
 }
 
-function getInputField (fieldName, type, defaultValue = null, isReadOnly = false, onChangeCallback = null) {
-  const value = defaultValue ? `value="${defaultValue}"` : ''
-  const readOnly = isReadOnly ? 'readonly' : ''
+function getInputField(fieldName, type, defaultValue = null, isReadOnly = false, onChangeCallback = null) {
+  const value = defaultValue ? `value="${defaultValue}"` : "";
+  const readOnly = isReadOnly ? "readonly" : "";
   if (readOnly) {
-    return `<input ${readOnly} id="${fieldName}" type="${type}" ${value} class="ons-input ons-input--text ons-input--w-20" onchange="${onChangeCallback}">`
+    return `<input ${readOnly} id="${fieldName}" type="${type}" ${value} class="ons-input ons-input--text ons-input--w-20" onchange="${onChangeCallback}">`;
   }
-  if (type === 'checkbox') {
-    return `<input ${readOnly} id="${fieldName}" type="${type}" ${value} class="ons-checkbox--toggle" onchange="${onChangeCallback}">`
+  if (type === "checkbox") {
+    return `<input ${readOnly} id="${fieldName}" type="${type}" ${value} class="ons-checkbox--toggle" onchange="${onChangeCallback}">`;
   }
-  return `<input ${readOnly} id="${fieldName}" name="${fieldName}" type="${type}" ${value} class="ons-input ons-input--text ons-input--w-20" onchange="${onChangeCallback}">`
+  return `<input ${readOnly} id="${fieldName}" name="${fieldName}" type="${type}" ${value} class="ons-input ons-input--text ons-input--w-20" onchange="${onChangeCallback}">`;
 }
 
-async function loadSDSDatasetMetadata (surveyId, periodId, sdsEnabled) {
+async function loadSDSDatasetMetadata(surveyId, periodId, sdsEnabled) {
   if (surveyId && periodId && sdsEnabled) {
-    const sdsDatasetMetadataUrl = `/supplementary-data?survey_id=${surveyId}&period_id=${periodId}`
-    return await getDataAsync(sdsDatasetMetadataUrl)
+    const sdsDatasetMetadataUrl = `/supplementary-data?survey_id=${surveyId}&period_id=${periodId}`;
+    return await getDataAsync(sdsDatasetMetadataUrl);
   }
-  return null
+  return null;
 }
 
-function handleNoSupplementaryData () {
-  showMetadataAccordion('sds', false)
-  setTabIndex('sds_metadata_detail', -1)
+function handleNoSupplementaryData() {
+  showMetadataAccordion("sds", false);
+  setTabIndex("sds_metadata_detail", -1);
 }
 
-function showCIRMetadata (cirInstrumentId, cirSchema) {
-  showMetadataAccordion('cir', true)
+function showCIRMetadata(cirInstrumentId, cirSchema) {
+  showMetadataAccordion("cir", true);
   const ciMetadata = {
     guid: cirInstrumentId,
-    ci_version: cirSchema.getAttribute('data-version'),
-    title: cirSchema.getAttribute('data-title'),
-    validator_version: cirSchema.getAttribute('data-validator-version')
-  }
-  document.querySelector('#cir_metadata').innerHTML = Object.keys(ciMetadata)
-    .map((key) => `<div class="ons-field ons-field--inline">${getLabelFor(key)}${getInputField(key, 'text', ciMetadata[key], true)}</div>`)
-    .join('')
-  setTabIndex('cir_metadata_detail', 0)
+    ci_version: cirSchema.getAttribute("data-version"),
+    title: cirSchema.getAttribute("data-title"),
+    validator_version: cirSchema.getAttribute("data-validator-version"),
+  };
+  document.querySelector("#cir_metadata").innerHTML = Object.keys(ciMetadata)
+    .map((key) => `<div class="ons-field ons-field--inline">${getLabelFor(key)}${getInputField(key, "text", ciMetadata[key], true)}</div>`)
+    .join("");
+  setTabIndex("cir_metadata_detail", 0);
 }
 
-function updateSDSDropdown (sdsEnabled) {
-  const surveyId = schemaSurveyId
-  const periodId = document.getElementById('period_id')?.value
-  const sdsDatasetIdElement = document.querySelector('#sds_dataset_id')
+function updateSDSDropdown(sdsEnabled) {
+  const surveyId = schemaSurveyId;
+  const periodId = document.getElementById("period_id")?.value;
+  const sdsDatasetIdElement = document.querySelector("#sds_dataset_id");
   loadSDSDatasetMetadata(surveyId, periodId, sdsEnabled)
     .then((sdsMetadataResponse) => {
       if (sdsMetadataResponse?.length) {
-        document.querySelector('#supplementary_data').innerHTML = ''
-        supplementaryDataSets = sdsMetadataResponse
-        showMetadataAccordion('sds', true)
-        setTabIndex('sds_metadata_detail', 0)
-        enableButtons([launchButton, flushButton])
+        document.querySelector("#supplementary_data").innerHTML = "";
+        supplementaryDataSets = sdsMetadataResponse;
+        showMetadataAccordion("sds", true);
+        setTabIndex("sds_metadata_detail", 0);
+        enableButtons([launchButton, flushButton]);
 
-        if (!document.querySelector('#survey_metadata').contains(sdsDatasetIdElement)) {
+        if (!document.querySelector("#survey_metadata").contains(sdsDatasetIdElement)) {
           // add sds_dataset_id field into the SDS metadata section if not already in survey metadata
-          supplementaryDataSection.innerHTML = `<div class="ons-field ons-field--inline">${getLabelFor('sds_dataset_id')}<select id="sds_dataset_id" name="sds_dataset_id" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select></div>`
+          supplementaryDataSection.innerHTML = `<div class="ons-field ons-field--inline">${getLabelFor("sds_dataset_id")}<select id="sds_dataset_id" name="sds_dataset_id" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select></div>`;
         }
 
-        document.querySelector('#sds_dataset_id').innerHTML = sdsMetadataResponse.map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`).join('')
-        loadSupplementaryDataInfo()
-      } else if (document.querySelector('#sds_dataset_id')) {
-        document.querySelector('#sds_dataset_id').innerHTML = ''
-        handleNoSupplementaryData()
+        document.querySelector("#sds_dataset_id").innerHTML = sdsMetadataResponse
+          .map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`)
+          .join("");
+        loadSupplementaryDataInfo();
+      } else if (document.querySelector("#sds_dataset_id")) {
+        document.querySelector("#sds_dataset_id").innerHTML = "";
+        handleNoSupplementaryData();
       }
     })
     .catch((_) => {
-      handleNoSupplementaryData()
-    })
+      handleNoSupplementaryData();
+    });
 }
 
-function loadSchemaMetadata (schemaName, schemaUrl, cirInstrumentId) {
-  let surveyDataUrl = '/survey-data?'
+function loadSchemaMetadata(schemaName, schemaUrl, cirInstrumentId) {
+  let surveyDataUrl = "/survey-data?";
 
   if (cirInstrumentId) {
-    surveyDataUrl += `&cir_instrument_id=${cirInstrumentId}`
+    surveyDataUrl += `&cir_instrument_id=${cirInstrumentId}`;
   } else {
-    showMetadataAccordion('cir', false)
-    setTabIndex('cir_metadata_detail', -1)
-    if (schemaName) surveyDataUrl += `&schema_name=${schemaName}`
-    if (schemaUrl) surveyDataUrl += `&schema_url=${schemaUrl}`
+    showMetadataAccordion("cir", false);
+    setTabIndex("cir_metadata_detail", -1);
+    if (schemaName) surveyDataUrl += `&schema_name=${schemaName}`;
+    if (schemaUrl) surveyDataUrl += `&schema_url=${schemaUrl}`;
   }
-  showMetadataAccordion('sds', false)
-  setTabIndex('sds_metadata_detail', -1)
+  showMetadataAccordion("sds", false);
+  setTabIndex("sds_metadata_detail", -1);
   getDataAsync(surveyDataUrl)
     .then((schemaResponse) => {
-      document.querySelector('#survey_metadata').innerHTML = ''
+      document.querySelector("#survey_metadata").innerHTML = "";
 
       // We always need survey_id from top-level schema metadata for SDS retrieval
-      schemaSurveyId = schemaResponse.survey_id
+      schemaSurveyId = schemaResponse.survey_id;
 
       if (schemaResponse.metadata.length > 0) {
-        document.querySelector('#survey_metadata').innerHTML = schemaResponse.metadata
+        document.querySelector("#survey_metadata").innerHTML = schemaResponse.metadata
           .map((metadataField) => {
-            const fieldName = metadataField.name
-            const defaultValue = metadataField.default
+            const fieldName = metadataField.name;
+            const defaultValue = metadataField.default;
 
             return `<div class="ons-field ons-field--inline">${getLabelFor(fieldName)}${(() => {
-              if (metadataField.type === 'boolean') {
-                return getInputField(fieldName, 'checkbox')
-              } else if (metadataField.type === 'uuid') {
-                return `<span>${getInputField(fieldName, 'text', uuidv4())}` + `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` + '</span>'
-              } else if (fieldName === 'survey_id' || fieldName === 'period_id') {
-                return getInputField(fieldName, 'text', fieldName === 'survey_id' ? schemaResponse.survey_id : defaultValue, false, 'updateSDSDropdown(sdsEnabled)')
-              } else if (fieldName === 'sds_dataset_id') {
-                return `<select id="${fieldName}" name="${fieldName}" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select>`
+              if (metadataField.type === "boolean") {
+                return getInputField(fieldName, "checkbox");
+              } else if (metadataField.type === "uuid") {
+                return (
+                  `<span>${getInputField(fieldName, "text", uuidv4())}` +
+                  `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` +
+                  "</span>"
+                );
+              } else if (fieldName === "survey_id" || fieldName === "period_id") {
+                return getInputField(
+                  fieldName,
+                  "text",
+                  fieldName === "survey_id" ? schemaResponse.survey_id : defaultValue,
+                  false,
+                  "updateSDSDropdown(sdsEnabled)",
+                );
+              } else if (fieldName === "sds_dataset_id") {
+                return `<select id="${fieldName}" name="${fieldName}" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select>`;
               } else {
-                return getInputField(fieldName, 'text', defaultValue)
+                return getInputField(fieldName, "text", defaultValue);
               }
-            })()}</div>`
+            })()}</div>`;
           })
-          .join('')
-        updateSDSDropdown(sdsEnabled)
+          .join("");
+        updateSDSDropdown(sdsEnabled);
       } else {
-        document.querySelector('#survey_metadata').innerHTML = 'No metadata required for this survey'
+        document.querySelector("#survey_metadata").innerHTML = "No metadata required for this survey";
       }
-      enableButtons([launchButton, flushButton])
+      enableButtons([launchButton, flushButton]);
     })
     .catch((_) => {
-      document.querySelector('#survey_metadata').innerHTML = 'Failed to load Survey Metadata'
-    })
+      document.querySelector("#survey_metadata").innerHTML = "Failed to load Survey Metadata";
+    });
 }
 
-function loadSupplementaryDataInfo () {
-  const selectedDatasetId = document.getElementById('sds_dataset_id')?.value
-  const selectedDataset = supplementaryDataSets?.find((d) => d.dataset_id === selectedDatasetId)
+function loadSupplementaryDataInfo() {
+  const selectedDatasetId = document.getElementById("sds_dataset_id")?.value;
+  const selectedDataset = supplementaryDataSets?.find((d) => d.dataset_id === selectedDatasetId);
 
   if (!selectedDataset) {
-    return
+    return;
   }
 
-  const sdsDatasetMetadataKeys = ['title', 'total_reporting_units', 'schema_version', 'sds_dataset_version']
+  const sdsDatasetMetadataKeys = ["title", "total_reporting_units", "schema_version", "sds_dataset_version"];
 
-  const sdsMetadataField = (key) => `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, 'text', selectedDataset[key], true)}</div>`
+  const sdsMetadataField = (key) =>
+    `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, "text", selectedDataset[key], true)}</div>`;
 
-  const supplementaryDataFields = document.createRange().createContextualFragment(sdsDatasetMetadataKeys.map(sdsMetadataField).join(''))
-  supplementaryDataSection.querySelectorAll('.ons-field[data-sds-metadata-key]').forEach((sdsValue) => sdsValue.remove())
-  supplementaryDataSection.appendChild(supplementaryDataFields)
+  const supplementaryDataFields = document.createRange().createContextualFragment(sdsDatasetMetadataKeys.map(sdsMetadataField).join(""));
+  supplementaryDataSection.querySelectorAll(".ons-field[data-sds-metadata-key]").forEach((sdsValue) => sdsValue.remove());
+  supplementaryDataSection.appendChild(supplementaryDataFields);
 }
 
-function uuid (elementId) {
-  document.querySelector(`#${elementId}`).value = uuidv4()
+function uuid(elementId) {
+  document.querySelector(`#${elementId}`).value = uuidv4();
 }
 
-function numericId () {
-  let result = ''
-  const chars = '0123456789'
+function numericId() {
+  let result = "";
+  const chars = "0123456789";
   for (let i = 16; i > 0; --i) {
-    result += chars[Math.round(Math.random() * (chars.length - 1))]
+    result += chars[Math.round(Math.random() * (chars.length - 1))];
   }
-  document.querySelector('#response_id').value = result
+  document.querySelector("#response_id").value = result;
 }
 
-function setResponseExpiry (daysOffset = 7) {
-  const dt = new Date()
-  dt.setDate(dt.getDate() + daysOffset)
-  document.querySelector('#response_expires_at').value = dt
+function setResponseExpiry(daysOffset = 7) {
+  const dt = new Date();
+  dt.setDate(dt.getDate() + daysOffset);
+  document.querySelector("#response_expires_at").value = dt
     .toISOString()
-    .replace(/(\.\d*)/, '')
-    .replace(/Z/, '+00:00')
+    .replace(/(\.\d*)/, "")
+    .replace(/Z/, "+00:00");
 }
 
-function validateForm () {
-  validateResponseExpiresAt()
-  removeUnwantedMetadata()
+function validateForm() {
+  validateResponseExpiresAt();
+  removeUnwantedMetadata();
 }
 
-function validateResponseExpiresAt () {
-  const responseExpiresAt = Date.parse(document.querySelector('#response_expires_at').value)
+function validateResponseExpiresAt() {
+  const responseExpiresAt = Date.parse(document.querySelector("#response_expires_at").value);
   if (isNaN(responseExpiresAt)) {
-    document.querySelector('#response_expires_at').remove()
+    document.querySelector("#response_expires_at").remove();
   }
 }
 
 // Inputs without a name will not be submitted
-function removeUnwantedMetadata () {
-  const inputs = document.getElementsByTagName('input')
+function removeUnwantedMetadata() {
+  const inputs = document.getElementsByTagName("input");
   for (const input of inputs) {
     if (!input.value) {
-      input.removeAttribute('name')
+      input.removeAttribute("name");
     }
   }
 }
 
-function retrieveResponseId () {
-  const responseId = localStorage.getItem('response_id')
-  const responseIdButton = document.querySelector('#response-id-btn')
+function retrieveResponseId() {
+  const responseId = localStorage.getItem("response_id");
+  const responseIdButton = document.querySelector("#response-id-btn");
 
   if (responseId) {
-    responseIdButton.classList.remove('ons-btn--disabled')
-    responseIdButton.disabled = false
+    responseIdButton.classList.remove("ons-btn--disabled");
+    responseIdButton.disabled = false;
   } else {
-    responseIdButton.classList.add('ons-btn--disabled')
-    responseIdButton.disabled = true
+    responseIdButton.classList.add("ons-btn--disabled");
+    responseIdButton.disabled = true;
   }
 }
 
-function loadResponseId () {
-  document.querySelector('#response_id').value = localStorage.getItem('response_id')
+function loadResponseId() {
+  document.querySelector("#response_id").value = localStorage.getItem("response_id");
 }
 
-function saveResponseId () {
-  localStorage.setItem('response_id', document.querySelector('#response_id').value)
+function saveResponseId() {
+  localStorage.setItem("response_id", document.querySelector("#response_id").value);
 }
 
-function clearLocalStorage () {
-  localStorage.removeItem('response_id')
-  localStorage.removeItem('schema_name')
-  localStorage.removeItem('survey_type')
-  localStorage.removeItem('cir_schema')
-  localStorage.removeItem('schema_url')
-  location.reload()
+function clearLocalStorage() {
+  localStorage.removeItem("response_id");
+  localStorage.removeItem("schema_name");
+  localStorage.removeItem("survey_type");
+  localStorage.removeItem("cir_schema");
+  localStorage.removeItem("schema_url");
+  location.reload();
 }
 
-function populateDropDownWithValue (selector, value) {
-  const availableOptions = [...document.querySelector(selector).options].map((x) => x.value)
+function populateDropDownWithValue(selector, value) {
+  const availableOptions = [...document.querySelector(selector).options].map((x) => x.value);
 
   if (availableOptions.includes(value)) {
-    document.querySelector(selector).value = value
+    document.querySelector(selector).value = value;
   }
 }
 
-function setTabIndex (metadataDetail, value) {
-  document.getElementById(metadataDetail).tabIndex = value
+function setTabIndex(metadataDetail, value) {
+  document.getElementById(metadataDetail).tabIndex = value;
 }
 
-function initialiseTabIndex () {
-  const details = ['cir_metadata_detail', 'survey_type_metadata_detail', 'sds_metadata_detail']
+function initialiseTabIndex() {
+  const details = ["cir_metadata_detail", "survey_type_metadata_detail", "sds_metadata_detail"];
   for (let i = 0; i < details.length; i++) {
-    document.getElementById(details[i]).tabIndex = -1
+    document.getElementById(details[i]).tabIndex = -1;
   }
 }
 
-function onLoad () {
-  uuid('collection_exercise_sid')
-  uuid('case_id')
-  numericId()
-  setResponseExpiry()
-  retrieveResponseId()
-  initialiseTabIndex()
+function onLoad() {
+  uuid("collection_exercise_sid");
+  uuid("case_id");
+  numericId();
+  setResponseExpiry();
+  retrieveResponseId();
+  initialiseTabIndex();
 
-  const storedSchemaName = localStorage.getItem('schema_name')
+  const storedSchemaName = localStorage.getItem("schema_name");
   if (storedSchemaName) {
-    populateDropDownWithValue('#schema_name', storedSchemaName)
-    loadMetadataForSchemaName()
+    populateDropDownWithValue("#schema_name", storedSchemaName);
+    loadMetadataForSchemaName();
   } else {
-    const storedSurveyType = localStorage.getItem('survey_type')
+    const storedSurveyType = localStorage.getItem("survey_type");
     if (storedSurveyType) {
-      surveyType = storedSurveyType
-      populateDropDownWithValue('#remote-schema-survey-type', surveyType)
+      surveyType = storedSurveyType;
+      populateDropDownWithValue("#remote-schema-survey-type", surveyType);
     }
-    const storedCirSchema = localStorage.getItem('cir_schema')
+    const storedCirSchema = localStorage.getItem("cir_schema");
     if (storedCirSchema) {
-      cirSchema = storedCirSchema
-      populateDropDownWithValue('#cir-schemas', cirSchema)
+      cirSchema = storedCirSchema;
+      populateDropDownWithValue("#cir-schemas", cirSchema);
     }
-    const storedSchemaUrl = localStorage.getItem('schema_url')
+    const storedSchemaUrl = localStorage.getItem("schema_url");
     if (storedSchemaUrl) {
-      schemaUrl = storedSchemaUrl
-      document.querySelector('#remote-schema-url').value = schemaUrl
+      schemaUrl = storedSchemaUrl;
+      document.querySelector("#remote-schema-url").value = schemaUrl;
     }
-    toggleLoadMetadataButton()
+    toggleLoadMetadataButton();
   }
 }
 
-window.clearLocalStorage = clearLocalStorage
-window.loadMetadataForRemoteSchema = loadMetadataForRemoteSchema
-window.loadMetadataForSchemaName = loadMetadataForSchemaName
-window.loadResponseId = loadResponseId
-window.loadSupplementaryDataInfo = loadSupplementaryDataInfo
-window.numericId = numericId
-window.onLoad = onLoad
-window.saveResponseId = saveResponseId
-window.setCirSchema = setCirSchema
-window.setLaunchType = setLaunchType
-window.setResponseExpiry = setResponseExpiry
-window.setSchemaUrl = setSchemaUrl
-window.setSurveyType = setSurveyType
-window.updateSDSDropdown = updateSDSDropdown
-window.uuid = uuid
-window.validateForm = validateForm
+window.clearLocalStorage = clearLocalStorage;
+window.loadMetadataForRemoteSchema = loadMetadataForRemoteSchema;
+window.loadMetadataForSchemaName = loadMetadataForSchemaName;
+window.loadResponseId = loadResponseId;
+window.loadSupplementaryDataInfo = loadSupplementaryDataInfo;
+window.numericId = numericId;
+window.onLoad = onLoad;
+window.saveResponseId = saveResponseId;
+window.setCirSchema = setCirSchema;
+window.setLaunchType = setLaunchType;
+window.setResponseExpiry = setResponseExpiry;
+window.setSchemaUrl = setSchemaUrl;
+window.setSurveyType = setSurveyType;
+window.updateSDSDropdown = updateSDSDropdown;
+window.uuid = uuid;
+window.validateForm = validateForm;

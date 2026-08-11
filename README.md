@@ -3,6 +3,7 @@
 This project was copied from [go-launch-a-survey](https://github.com/ONSdigital/go-launch-a-survey) and should be used for v3 of runner.
 
 ## Building and Running
+
 Install Go and ensure that your `GOPATH` env variable is set (usually it's `~/go`).
 
 ```go
@@ -16,7 +17,9 @@ go run launch.go (Does both the build and run cmd above)
 Open `http://localhost:8000/`
 
 ## Docker
+
 The Docker image can be built using the following command, providing the required target platform architecture as required
+
 ```shell
 docker buildx build --platform [ linux/amd64 | linux/arm64 ] --no-cache -t census31-eq-questionnaire-launcher:latest .
 ```
@@ -36,19 +39,24 @@ docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8
 You should then be able to access go launcher at `localhost:8000`
 
 ## Run Quick-Launch
+
 If the schema specifies a `schema_name` field, that will be used as the schema_name claim. If not, the filename from the URL (before `.`) will be used.
 
 Run Questionnaire Launcher
+
 ```text
 scripts/run_app.sh
 ```
+
 Now run Go launcher and navigate to "localhost:8000/quick-launch?schema_url=" passing the url of the JSON
+
 ```text
 e.g."http://localhost:8000/quick-launch?schema_url=http://localhost:7777/1_0001.json"
 ```
 
 The optional query parameter `version` can be added to the quick launch url which allows for the launch payload structure to be specified. If the parameter is not set then the default launch payload structure `v2` will be used.
 Documentation on the `v2` structure is in [ons-schema-definitions](https://github.com/ONSdigital/ons-schema-definitions/blob/v3/docs/rm_to_eq_runner_payload_v2.rst)
+
 ```text
 e.g."http://localhost:8000/quick-launch?schema_url=http://localhost:7777/1_0001.json&version=v1"
 ```
@@ -72,16 +80,19 @@ Its also possible to just run the golang linting locally, to run this you will n
 [golangci-lint](https://golangci-lint.run/welcome/install/#local-installation) installed.
 
 To install with Homebrew run:
+
 ```shell
 brew install golangci-lint
 ```
 
 To install with Conda run:
+
 ```shell
 conda install conda-forge::golangci-lint
 ```
 
 To lint the go files run:
+
 ```shell
 make lint-go
 ```
@@ -90,22 +101,24 @@ This will run both `golangci-lint` and `revive`. `revive` is run run via `go run
 so no separate `revive` binary install is required.
 
 To format the go files run:
+
 ```shell
 make format-go
 ```
 
-
 ## Design System
+
 To update the design system version, you need to update the version within the CDN link, they are present in both template files ([layout](templates/layout.html:11) and [launch](templates/launch.html:381))
 
 ## Notes
-* There are no unit tests yet
-* JWT spec based on [ons-schema-definitions](http://ons-schema-definitions.readthedocs.io/en/latest/jwt_profile.html)
+
+- There are no unit tests yet
+- JWT spec based on [ons-schema-definitions](http://ons-schema-definitions.readthedocs.io/en/latest/jwt_profile.html)
 
 ## Settings
 
 | Environment Variable           | Meaning                                                             | Default                                                                |
-|--------------------------------|---------------------------------------------------------------------|------------------------------------------------------------------------|
+| ------------------------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | GO_LAUNCH_A_SURVEY_LISTEN_HOST | Host address to listen on                                           | 0.0.0.0                                                                |
 | GO_LAUNCH_A_SURVEY_LISTEN_PORT | Host port to listen on                                              | 8000                                                                   |
 | SURVEY_RUNNER_URL              | URL of Questionnaire Runner to re-direct to when launching a survey | `http://localhost:5000`                                                |
