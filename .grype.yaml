@@ -1,3 +1,0 @@
----
-ignore:
-    - { vulnerability: GO-2026-5932, package: { name: golang.org/x/crypto } }
