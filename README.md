@@ -118,7 +118,7 @@ To update the design system version, you need to update the version within the C
 ## Settings
 
 | Environment Variable           | Meaning                                                             | Default                                                                |
-| ------------------------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+|--------------------------------|---------------------------------------------------------------------|------------------------------------------------------------------------|
 | GO_LAUNCH_A_SURVEY_LISTEN_HOST | Host address to listen on                                           | 0.0.0.0                                                                |
 | GO_LAUNCH_A_SURVEY_LISTEN_PORT | Host port to listen on                                              | 8000                                                                   |
 | SURVEY_RUNNER_URL              | URL of Questionnaire Runner to re-direct to when launching a survey | `http://localhost:5000`                                                |
