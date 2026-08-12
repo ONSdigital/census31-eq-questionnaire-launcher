@@ -18,10 +18,10 @@ import (
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/json"
+	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/gofrs/uuid"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/json"
-	"gopkg.in/square/go-jose.v2/jwt"
 
 	"bytes"
 	"log"
@@ -73,6 +73,7 @@ func loadEncryptionKey() (*PublicKeyResult, *KeyLoadError) {
 		return nil, &KeyLoadError{Op: "parse", Err: "Failed to parse encryption key PEM"}
 	}
 
+	// Keep SHA-1 KID derivation for compatibility with runner key lookup.
 	kid := fmt.Sprintf("%x", sha1.Sum(keyData))
 
 	publicKey, ok := pub.(*rsa.PublicKey)
@@ -105,6 +106,7 @@ func loadSigningKey() (*PrivateKeyResult, *KeyLoadError) {
 		Type:  "PUBLIC KEY",
 		Bytes: PublicKey,
 	})
+	// Keep SHA-1 KID derivation for compatibility with runner key lookup.
 	kid := fmt.Sprintf("%x", sha1.Sum(pubBytes))
 
 	return &PrivateKeyResult{privateKey, kid}, nil
@@ -205,7 +207,7 @@ func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchem
 // GenerateJwtClaims creates a jwtClaim needed to generate a token
 func GenerateJwtClaims() (jwtClaims map[string]interface{}) {
 	issued := time.Now()
-	expires := issued.Add(time.Minute * 10) // TODO: Support custom exp: r.PostForm.Get("exp")
+	expires := issued.Add(time.Minute * 10) // Future enhancement: support custom exp via request payload.
 
 	jwtClaims = make(map[string]interface{})
 
@@ -362,7 +364,7 @@ func generateTokenFromClaims(cl map[string]interface{}) (string, *TokenError) {
 		return "", &TokenError{Desc: "Error creating JWT signer", From: err}
 	}
 
-	token, err := jwt.SignedAndEncrypted(signer, encryptor).Claims(cl).CompactSerialize()
+	token, err := jwt.SignedAndEncrypted(signer, encryptor).Claims(cl).Serialize()
 
 	if err != nil {
 		return "", &TokenError{Desc: "Error signing and encrypting JWT", From: err}

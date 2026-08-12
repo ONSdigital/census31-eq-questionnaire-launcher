@@ -19,18 +19,40 @@ ENABLE:
   - JSON
   - MAKEFILE
   - MARKDOWN
+  - REPOSITORY
   - YAML
 
 DISABLE_LINTERS:
-  - HTML_HTMLHINT # HTMLHint was disabled as HTMLHint doesn't understand GoLang syntax so there was a lot of false positives
+  - HTML_HTMLHINT # False positives with Go template syntax
+  - REPOSITORY_KINGFISHER # Secret scanning covered by secretlint + trufflehog (7.24s)
+  - REPOSITORY_GITLEAKS # Deprecated in v9.6.0; pattern-based coverage kept via secretlint
+  - REPOSITORY_BETTERLEAKS # Overlaps secretlint; secretlint configured via .secretlintignore for this repo
+  - REPOSITORY_GRYPE # Vulnerability coverage overlaps trivy + osv-scanner with much higher runtime (46.51s)
+  - REPOSITORY_SYFT # SBOM generation covered by trivy-sbom (2.85s)
+  - GO_REVIVE # Linting covered by golangci-lint which runs revive internally (2.11s)
+  - JSON_V8R # Makes network calls to SchemaStore; covered by jsonlint + npm-package-json-lint (13.6s)
+  - YAML_V8R # Makes network calls to SchemaStore; syntax and workflow coverage via yamllint + actionlint (3.18s)
 
 FORMATTERS_DISABLE_ERRORS: false # Ensures code is actually fixable when using `make megalint-apply`
 SHOW_ELAPSED_TIME: true # Displays execution time for each linter
 FLAVOR_SUGGESTIONS: false # Disables suggestions to use different MegaLinter flavors
 PARALLEL_PROCESS_NUMBER: 1
 FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
+GO_GOLANGCI_LINT_CLI_LINT_MODE: project
 GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
-GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]
+GO_GOLANGCI_LINT_PRE_COMMANDS:
+  - command: go mod tidy
+    cwd: workspace
+  - command: go mod download
+    cwd: workspace
+
+REPOSITORY_TRIVY_ARGUMENTS:
+  - "--skip-dirs"
+  - "megalinter-reports"
+
+REPOSITORY_OSV_SCANNER_ARGUMENTS:
+  - "--experimental-exclude=megalinter-reports"
+  - "--no-call-analysis=go"
 
 ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
   - GITHUB_TOKEN

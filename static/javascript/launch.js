@@ -302,7 +302,9 @@ function updateSDSDropdown (sdsEnabled) {
           supplementaryDataSection.innerHTML = `<div class="ons-field ons-field--inline">${getLabelFor('sds_dataset_id')}<select id="sds_dataset_id" name="sds_dataset_id" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select></div>`
         }
 
-        document.querySelector('#sds_dataset_id').innerHTML = sdsMetadataResponse.map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`).join('')
+        document.querySelector('#sds_dataset_id').innerHTML = sdsMetadataResponse
+          .map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`)
+          .join('')
         loadSupplementaryDataInfo()
       } else if (document.querySelector('#sds_dataset_id')) {
         document.querySelector('#sds_dataset_id').innerHTML = ''
@@ -344,9 +346,19 @@ function loadSchemaMetadata (schemaName, schemaUrl, cirInstrumentId) {
               if (metadataField.type === 'boolean') {
                 return getInputField(fieldName, 'checkbox')
               } else if (metadataField.type === 'uuid') {
-                return `<span>${getInputField(fieldName, 'text', uuidv4())}` + `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` + '</span>'
+                return (
+                  `<span>${getInputField(fieldName, 'text', uuidv4())}` +
+                  `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` +
+                  '</span>'
+                )
               } else if (fieldName === 'survey_id' || fieldName === 'period_id') {
-                return getInputField(fieldName, 'text', fieldName === 'survey_id' ? schemaResponse.survey_id : defaultValue, false, 'updateSDSDropdown(sdsEnabled)')
+                return getInputField(
+                  fieldName,
+                  'text',
+                  fieldName === 'survey_id' ? schemaResponse.survey_id : defaultValue,
+                  false,
+                  'updateSDSDropdown(sdsEnabled)'
+                )
               } else if (fieldName === 'sds_dataset_id') {
                 return `<select id="${fieldName}" name="${fieldName}" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select>`
               } else {
@@ -376,7 +388,8 @@ function loadSupplementaryDataInfo () {
 
   const sdsDatasetMetadataKeys = ['title', 'total_reporting_units', 'schema_version', 'sds_dataset_version']
 
-  const sdsMetadataField = (key) => `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, 'text', selectedDataset[key], true)}</div>`
+  const sdsMetadataField = (key) =>
+    `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, 'text', selectedDataset[key], true)}</div>`
 
   const supplementaryDataFields = document.createRange().createContextualFragment(sdsDatasetMetadataKeys.map(sdsMetadataField).join(''))
   supplementaryDataSection.querySelectorAll('.ons-field[data-sds-metadata-key]').forEach((sdsValue) => sdsValue.remove())

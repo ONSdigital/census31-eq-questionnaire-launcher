@@ -1,2 +1,3 @@
 #Ignore any html files
 **/*.html
+.github/PULL_REQUEST_TEMPLATE.md

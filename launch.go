@@ -15,9 +15,9 @@ import (
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/authentication"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
+	"github.com/go-jose/go-jose/v4/json"
 	"github.com/gofrs/uuid"
 	"github.com/gorilla/mux"
-	"gopkg.in/square/go-jose.v2/json"
 )
 
 func randomNumericString(n int) string {
