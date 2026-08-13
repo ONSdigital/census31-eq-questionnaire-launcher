@@ -27,7 +27,7 @@ DISABLE_LINTERS:
 FORMATTERS_DISABLE_ERRORS: false # Ensures code is actually fixable when using `make megalint-apply`
 SHOW_ELAPSED_TIME: true # Displays execution time for each linter
 FLAVOR_SUGGESTIONS: false # Disables suggestions to use different MegaLinter flavors
-PARALLEL_PROCESS_NUMBER: 1
+
 FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
 GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
 GO_REVIVE_ARGUMENTS: ["-config", "revive.toml"]

@@ -27,31 +27,22 @@ function uuidv4 () {
   })
 }
 
-// store fetch so it only needs to be re-done if the survey changes
-let supplementaryDataSets = null
-
-// We always need survey_id from top-level schema metadata for SDS retrieval
-let schemaSurveyId = null
-
-const supplementaryDataSection = document.querySelector('#supplementary_data')
 const loadMetadataButton = document.querySelector('#load-metadata-btn')
 const remoteSchemaSurveyType = document.querySelector('#remote-schema-survey-type')
 const launchButton = document.querySelector('#launch-btn')
 const flushButton = document.querySelector('#flush-btn')
 
 let surveyType
-let cirSchema
 let schemaUrl
 
 function clearSurveyMetadataFields () {
   document.querySelector('#survey-type-metadata-accordion').classList.add('ons-u-vh')
   document.querySelector('#survey_metadata_fields').innerHTML = ''
   setTabIndex('survey_type_metadata_detail', -1)
-  showMetadataAccordion('sds', false)
 }
 
 function toggleLoadMetadataButton () {
-  if (surveyType && (cirSchema || schemaUrl)) {
+  if (schemaUrl) {
     enableButtons([loadMetadataButton])
   } else {
     disableButtons([loadMetadataButton])
@@ -60,71 +51,37 @@ function toggleLoadMetadataButton () {
 
 function setSurveyType () {
   surveyType = remoteSchemaSurveyType.value
-  localStorage.setItem('survey_type', surveyType)
+  localStorage.setItem('survey_type', surveyType) // eslint-disable-line no-undef
   setLaunchType('remote')
   toggleLoadMetadataButton()
 }
 
 function setSchemaUrl () {
   schemaUrl = document.querySelector('#remote-schema-url').value
-  localStorage.setItem('schema_url', schemaUrl)
+  localStorage.setItem('schema_url', schemaUrl) // eslint-disable-line no-undef
   setLaunchType('url')
-  toggleLoadMetadataButton()
-}
-
-function setCirSchema () {
-  cirSchema = document.querySelector('#cir-schemas').value
-  localStorage.setItem('cir_schema', cirSchema)
-  setLaunchType('cir')
   toggleLoadMetadataButton()
 }
 
 function setLaunchType (launchType) {
   const schemaName = document.querySelector('#schema_name')
   const remoteSchemaUrl = document.querySelector('#remote-schema-url')
-  const cirSchemas = document.querySelector('#cir-schemas')
   const remoteSchemaSurveyType = document.querySelector('#remote-schema-survey-type')
 
-  if (['cir', 'remote', 'url'].includes(launchType)) {
-    if (schemaName.selectedIndex) {
-      clearSurveyMetadataFields()
-      disableButtons([launchButton, flushButton])
-      schemaName.selectedIndex = 0
-      localStorage.removeItem('schema_name')
-    }
-
-    if (launchType === 'cir') {
-      remoteSchemaUrl.value = ''
-      localStorage.removeItem('schema_url')
-      toggleLoadMetadataButton()
-    } else if (launchType === 'url') {
-      cirSchemas.selectedIndex = 0
-      cirSchema = null
-      localStorage.removeItem('cir_schema')
-      toggleLoadMetadataButton()
-    }
-  }
-  if (launchType === 'name') {
+  if (launchType === 'url') {
+    clearSurveyMetadataFields()
+    disableButtons([launchButton, flushButton])
+    schemaName.selectedIndex = 0
+    localStorage.removeItem('schema_name') // eslint-disable-line no-undef
+  } else if (launchType === 'name') {
     remoteSchemaUrl.value = ''
-    cirSchemas.selectedIndex = 0
     remoteSchemaSurveyType.selectedIndex = 0
-    cirSchema = null
     surveyType = null
     schemaUrl = null
-    localStorage.removeItem('schema_url')
-    localStorage.removeItem('cir_schema')
-    localStorage.removeItem('survey_type')
+    localStorage.removeItem('schema_url') // eslint-disable-line no-undef
+    localStorage.removeItem('survey_type') // eslint-disable-line no-undef
     document.querySelector('#language_code').disabled = false
     disableButtons([loadMetadataButton])
-  }
-}
-
-function showMetadataAccordion (type, show) {
-  const accordionElement = document.querySelector(`#${type}-metadata-accordion`)
-  if (show) {
-    accordionElement.classList.remove('ons-u-vh')
-  } else {
-    accordionElement.classList.add('ons-u-vh')
   }
 }
 
@@ -158,12 +115,11 @@ function includeSurveyMetadataFields (schemaName, surveyTypeName) {
   surveyMetadataFields.textContent = ''
   surveyMetadataFields.appendChild(div)
   setTabIndex('survey_type_metadata_detail', 0)
-  showMetadataAccordion('sds', true)
 }
 
 function loadMetadataForSchemaName () {
   const schemaName = document.querySelector('#schema_name').value
-  localStorage.setItem('schema_name', schemaName)
+  localStorage.setItem('schema_name', schemaName) // eslint-disable-line no-undef
 
   if (schemaName !== 'Select Schema') {
     const surveyType = document.querySelector(`#schema_name option[value="${schemaName}"]`).dataset.surveyType
@@ -175,43 +131,30 @@ function loadMetadataForSchemaName () {
 function loadMetadataForRemoteSchema () {
   schemaUrl = document.querySelector('#remote-schema-url').value
 
-  const cirSchemaDropdown = document.querySelector('#cir-schemas')
-  const cirInstrumentId = cirSchemaDropdown.selectedIndex ? cirSchemaDropdown.value : null
-
   let schemaName = null
 
   if (schemaUrl && !schemaUrl.endsWith('.json')) {
-    alert("Schema URL is not valid URL must end with '.json'")
+    alert("Schema URL is not valid URL must end with '.json'") // eslint-disable-line no-undef
     return false
   }
 
   if (!remoteSchemaSurveyType.selectedIndex) {
-    alert('Select a Survey Type.')
+    alert('Select a Survey Type.') // eslint-disable-line no-undef
     return false
   }
 
-  if (!schemaUrl && !cirInstrumentId) {
-    alert('Enter a Schema URL or select a CIR Schema.')
+  if (!schemaUrl) {
+    alert('Enter a Schema URL.') // eslint-disable-line no-undef
     return false
   }
 
   if (schemaUrl) {
     schemaName = schemaUrl.split('/').slice(-1)[0].split('.json')[0]
     document.querySelector('#language_code').disabled = false
-  } else {
-    const cirSchema = cirSchemaDropdown.options[cirSchemaDropdown.selectedIndex]
-    schemaName = cirSchema.getAttribute('data-schema-name')
-    const language = cirSchema.getAttribute('data-language')
-
-    showCIRMetadata(cirInstrumentId, cirSchema)
-
-    // cir schemas are for a specific language, so populate and disable choosing it
-    populateDropDownWithValue('#language_code', language)
-    document.querySelector('#language_code').disabled = true
   }
 
-  loadSurveyMetadata(schemaName, surveyType)
-  loadSchemaMetadata(schemaName, schemaUrl, cirInstrumentId)
+  loadSurveyMetadata(schemaName, remoteSchemaSurveyType.value)
+  loadSchemaMetadata(schemaName, schemaUrl)
   enableButtons([launchButton, flushButton])
 }
 
@@ -225,13 +168,13 @@ function loadSurveyMetadata (schemaName, surveyTypeName) {
 
 async function getDataAsync (queryParam) {
   return new Promise((resolve, reject) => {
-    const xhttp = new XMLHttpRequest()
+    const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
     xhttp.onreadystatechange = function () {
       if (this.readyState === 4) {
         if (this.status === 200) {
           resolve(JSON.parse(this.responseText))
         } else {
-          alert(`Request failed. ${this.responseText}`)
+          alert(`Request failed. ${this.responseText}`) // eslint-disable-line no-undef
           reject(new Error(`Request failed. ${this.responseText}`))
         }
       }
@@ -257,82 +200,15 @@ function getInputField (fieldName, type, defaultValue = null, isReadOnly = false
   return `<input ${readOnly} id="${fieldName}" name="${fieldName}" type="${type}" ${value} class="ons-input ons-input--text ons-input--w-20" onchange="${onChangeCallback}">`
 }
 
-async function loadSDSDatasetMetadata (surveyId, periodId, sdsEnabled) {
-  if (surveyId && periodId && sdsEnabled) {
-    const sdsDatasetMetadataUrl = `/supplementary-data?survey_id=${surveyId}&period_id=${periodId}`
-    return await getDataAsync(sdsDatasetMetadataUrl)
-  }
-  return null
-}
-
-function handleNoSupplementaryData () {
-  showMetadataAccordion('sds', false)
-  setTabIndex('sds_metadata_detail', -1)
-}
-
-function showCIRMetadata (cirInstrumentId, cirSchema) {
-  showMetadataAccordion('cir', true)
-  const ciMetadata = {
-    guid: cirInstrumentId,
-    ci_version: cirSchema.getAttribute('data-version'),
-    title: cirSchema.getAttribute('data-title'),
-    validator_version: cirSchema.getAttribute('data-validator-version')
-  }
-  document.querySelector('#cir_metadata').innerHTML = Object.keys(ciMetadata)
-    .map((key) => `<div class="ons-field ons-field--inline">${getLabelFor(key)}${getInputField(key, 'text', ciMetadata[key], true)}</div>`)
-    .join('')
-  setTabIndex('cir_metadata_detail', 0)
-}
-
-function updateSDSDropdown (sdsEnabled) {
-  const surveyId = schemaSurveyId
-  const periodId = document.getElementById('period_id')?.value
-  const sdsDatasetIdElement = document.querySelector('#sds_dataset_id')
-  loadSDSDatasetMetadata(surveyId, periodId, sdsEnabled)
-    .then((sdsMetadataResponse) => {
-      if (sdsMetadataResponse?.length) {
-        document.querySelector('#supplementary_data').innerHTML = ''
-        supplementaryDataSets = sdsMetadataResponse
-        showMetadataAccordion('sds', true)
-        setTabIndex('sds_metadata_detail', 0)
-        enableButtons([launchButton, flushButton])
-
-        if (!document.querySelector('#survey_metadata').contains(sdsDatasetIdElement)) {
-          // add sds_dataset_id field into the SDS metadata section if not already in survey metadata
-          supplementaryDataSection.innerHTML = `<div class="ons-field ons-field--inline">${getLabelFor('sds_dataset_id')}<select id="sds_dataset_id" name="sds_dataset_id" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select></div>`
-        }
-
-        document.querySelector('#sds_dataset_id').innerHTML = sdsMetadataResponse.map((dataset) => `<option value="${dataset.dataset_id}">${dataset.dataset_id}</option>`).join('')
-        loadSupplementaryDataInfo()
-      } else if (document.querySelector('#sds_dataset_id')) {
-        document.querySelector('#sds_dataset_id').innerHTML = ''
-        handleNoSupplementaryData()
-      }
-    })
-    .catch((_) => {
-      handleNoSupplementaryData()
-    })
-}
-
-function loadSchemaMetadata (schemaName, schemaUrl, cirInstrumentId) {
+function loadSchemaMetadata (schemaName, schemaUrl) {
   let surveyDataUrl = '/survey-data?'
 
-  if (cirInstrumentId) {
-    surveyDataUrl += `&cir_instrument_id=${cirInstrumentId}`
-  } else {
-    showMetadataAccordion('cir', false)
-    setTabIndex('cir_metadata_detail', -1)
-    if (schemaName) surveyDataUrl += `&schema_name=${schemaName}`
-    if (schemaUrl) surveyDataUrl += `&schema_url=${schemaUrl}`
-  }
-  showMetadataAccordion('sds', false)
-  setTabIndex('sds_metadata_detail', -1)
+  if (schemaName) surveyDataUrl += `&schema_name=${schemaName}`
+  if (schemaUrl) surveyDataUrl += `&schema_url=${schemaUrl}`
+
   getDataAsync(surveyDataUrl)
     .then((schemaResponse) => {
       document.querySelector('#survey_metadata').innerHTML = ''
-
-      // We always need survey_id from top-level schema metadata for SDS retrieval
-      schemaSurveyId = schemaResponse.survey_id
 
       if (schemaResponse.metadata.length > 0) {
         document.querySelector('#survey_metadata').innerHTML = schemaResponse.metadata
@@ -346,16 +222,13 @@ function loadSchemaMetadata (schemaName, schemaUrl, cirInstrumentId) {
               } else if (metadataField.type === 'uuid') {
                 return `<span>${getInputField(fieldName, 'text', uuidv4())}` + `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` + '</span>'
               } else if (fieldName === 'survey_id' || fieldName === 'period_id') {
-                return getInputField(fieldName, 'text', fieldName === 'survey_id' ? schemaResponse.survey_id : defaultValue, false, 'updateSDSDropdown(sdsEnabled)')
-              } else if (fieldName === 'sds_dataset_id') {
-                return `<select id="${fieldName}" name="${fieldName}" class="ons-input ons-input--select ons-input--w-20" onchange="loadSupplementaryDataInfo()"></select>`
+                return getInputField(fieldName, 'text', fieldName === 'survey_id' ? schemaResponse.survey_id : defaultValue, false)
               } else {
                 return getInputField(fieldName, 'text', defaultValue)
               }
             })()}</div>`
           })
           .join('')
-        updateSDSDropdown(sdsEnabled)
       } else {
         document.querySelector('#survey_metadata').innerHTML = 'No metadata required for this survey'
       }
@@ -364,23 +237,6 @@ function loadSchemaMetadata (schemaName, schemaUrl, cirInstrumentId) {
     .catch((_) => {
       document.querySelector('#survey_metadata').innerHTML = 'Failed to load Survey Metadata'
     })
-}
-
-function loadSupplementaryDataInfo () {
-  const selectedDatasetId = document.getElementById('sds_dataset_id')?.value
-  const selectedDataset = supplementaryDataSets?.find((d) => d.dataset_id === selectedDatasetId)
-
-  if (!selectedDataset) {
-    return
-  }
-
-  const sdsDatasetMetadataKeys = ['title', 'total_reporting_units', 'schema_version', 'sds_dataset_version']
-
-  const sdsMetadataField = (key) => `<div class="ons-field ons-field--inline" data-sds-metadata-key>${getLabelFor(key)}${getInputField(key, 'text', selectedDataset[key], true)}</div>`
-
-  const supplementaryDataFields = document.createRange().createContextualFragment(sdsDatasetMetadataKeys.map(sdsMetadataField).join(''))
-  supplementaryDataSection.querySelectorAll('.ons-field[data-sds-metadata-key]').forEach((sdsValue) => sdsValue.remove())
-  supplementaryDataSection.appendChild(supplementaryDataFields)
 }
 
 function uuid (elementId) {
@@ -428,7 +284,7 @@ function removeUnwantedMetadata () {
 }
 
 function retrieveResponseId () {
-  const responseId = localStorage.getItem('response_id')
+  const responseId = localStorage.getItem('response_id') // eslint-disable-line no-undef
   const responseIdButton = document.querySelector('#response-id-btn')
 
   if (responseId) {
@@ -441,20 +297,21 @@ function retrieveResponseId () {
 }
 
 function loadResponseId () {
-  document.querySelector('#response_id').value = localStorage.getItem('response_id')
+  document.querySelector('#response_id').value = localStorage.getItem('response_id') // eslint-disable-line no-undef
 }
 
 function saveResponseId () {
-  localStorage.setItem('response_id', document.querySelector('#response_id').value)
+  localStorage.setItem('response_id', document.querySelector('#response_id').value) // eslint-disable-line no-undef
 }
 
 function clearLocalStorage () {
+  /* eslint-disable no-undef */
   localStorage.removeItem('response_id')
   localStorage.removeItem('schema_name')
   localStorage.removeItem('survey_type')
-  localStorage.removeItem('cir_schema')
   localStorage.removeItem('schema_url')
   location.reload()
+  /* eslint-enable no-undef */
 }
 
 function populateDropDownWithValue (selector, value) {
@@ -470,7 +327,7 @@ function setTabIndex (metadataDetail, value) {
 }
 
 function initialiseTabIndex () {
-  const details = ['cir_metadata_detail', 'survey_type_metadata_detail', 'sds_metadata_detail']
+  const details = ['survey_type_metadata_detail']
   for (let i = 0; i < details.length; i++) {
     document.getElementById(details[i]).tabIndex = -1
   }
@@ -484,22 +341,17 @@ function onLoad () {
   retrieveResponseId()
   initialiseTabIndex()
 
-  const storedSchemaName = localStorage.getItem('schema_name')
+  const storedSchemaName = localStorage.getItem('schema_name') // eslint-disable-line no-undef
   if (storedSchemaName) {
     populateDropDownWithValue('#schema_name', storedSchemaName)
     loadMetadataForSchemaName()
   } else {
-    const storedSurveyType = localStorage.getItem('survey_type')
+    const storedSurveyType = localStorage.getItem('survey_type') // eslint-disable-line no-undef
     if (storedSurveyType) {
       surveyType = storedSurveyType
       populateDropDownWithValue('#remote-schema-survey-type', surveyType)
     }
-    const storedCirSchema = localStorage.getItem('cir_schema')
-    if (storedCirSchema) {
-      cirSchema = storedCirSchema
-      populateDropDownWithValue('#cir-schemas', cirSchema)
-    }
-    const storedSchemaUrl = localStorage.getItem('schema_url')
+    const storedSchemaUrl = localStorage.getItem('schema_url') // eslint-disable-line no-undef
     if (storedSchemaUrl) {
       schemaUrl = storedSchemaUrl
       document.querySelector('#remote-schema-url').value = schemaUrl
@@ -512,15 +364,12 @@ window.clearLocalStorage = clearLocalStorage
 window.loadMetadataForRemoteSchema = loadMetadataForRemoteSchema
 window.loadMetadataForSchemaName = loadMetadataForSchemaName
 window.loadResponseId = loadResponseId
-window.loadSupplementaryDataInfo = loadSupplementaryDataInfo
 window.numericId = numericId
 window.onLoad = onLoad
 window.saveResponseId = saveResponseId
-window.setCirSchema = setCirSchema
 window.setLaunchType = setLaunchType
 window.setResponseExpiry = setResponseExpiry
 window.setSchemaUrl = setSchemaUrl
 window.setSurveyType = setSurveyType
-window.updateSDSDropdown = updateSDSDropdown
 window.uuid = uuid
 window.validateForm = validateForm

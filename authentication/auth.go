@@ -13,8 +13,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/ONSdigital/census31-eq-questionnaire-launcher/oidc"
-
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
@@ -137,7 +135,6 @@ func isTopLevelMetadata(key string) bool {
 		"response_id",
 		"schema_name",
 		"schema_url",
-		"cir_instrument_id",
 		"version",
 		"account_service_url":
 		return true
@@ -180,20 +177,10 @@ func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchem
 	TxID, _ := uuid.NewV4()
 	claims["tx_id"] = TxID.String()
 	claims["version"] = "v2"
-
-	// always send survey_id for business/test surveys unless it's already in survey metadata
-	_, ok := claimValues["survey_id"]
-	if !ok && !isSocialSurvey(schema.SurveyType) {
-		claimValues["survey_id"] = []string{schema.SurveyId}
-	}
+	claimValues["survey_id"] = []string{schema.SurveyId}
 
 	surveyMetadata := make(map[string]interface{})
 	data := make(map[string]interface{})
-
-	if isSocialSurvey(schema.SurveyType) {
-		receiptingKeys := []string{"qid"}
-		surveyMetadata["receipting_keys"] = receiptingKeys
-	}
 
 	getSurveyMetadataFromClaims(claimValues, data, claims, surveyMetadata)
 
@@ -305,8 +292,6 @@ func getSchemaClaims(launcherSchema surveys.LauncherSchema) map[string]interface
 	schemaClaims := make(map[string]interface{})
 	if launcherSchema.URL != "" {
 		schemaClaims["schema_url"] = launcherSchema.URL
-	} else if launcherSchema.CIRInstrumentID != "" {
-		schemaClaims["cir_instrument_id"] = launcherSchema.CIRInstrumentID
 	}
 
 	return schemaClaims
@@ -489,9 +474,8 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 
 	schemaName := TransformSchemaParamsToName(postValues)
 	schemaUrl := postValues.Get("schema_url")
-	cirInstrumentId := postValues.Get("cir_instrument_id")
 
-	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaUrl, cirInstrumentId)
+	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaUrl)
 
 	schema, error := getSchema(launcherSchema)
 	if error != "" {
@@ -588,17 +572,6 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 	switch {
 	case launcherSchema.URL != "":
 		url = launcherSchema.URL
-	case launcherSchema.CIRInstrumentID != "":
-		hostURL := settings.Get("CIR_API_BASE_URL")
-
-		log.Println("Collection Instrument ID: ", launcherSchema.CIRInstrumentID)
-		url = fmt.Sprintf("%s/v2/retrieve_collection_instrument?guid=%s", hostURL, launcherSchema.CIRInstrumentID)
-
-		_, err := oidc.ConfigureClientAuthentication(client, "CIR_OAUTH2_CLIENT_ID")
-		if err != nil {
-			log.Print(err)
-			return schema, fmt.Sprintf("Unable to generate CIR authentication credentials %s", url)
-		}
 	default:
 		hostURL := settings.Get("SURVEY_RUNNER_SCHEMA_URL")
 
@@ -635,25 +608,13 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 }
 
 func getMandatatoryClaims(surveyType string, defaults map[string]string) []Metadata {
-	var claims []Metadata
-	if isSocialSurvey(surveyType) {
-		claims = []Metadata{
-			{"qid", "false", defaults["qid"]},
-		}
-
-	} else {
-		claims = []Metadata{
-			{"ru_ref", "false", defaults["ru_ref"]},
-			{"period_id", "false", defaults["period_id"]},
-			{"user_id", "false", defaults["user_id"]},
-		}
+	var claims = []Metadata{
+		{"ru_ref", "false", defaults["ru_ref"]},
+		{"period_id", "false", defaults["period_id"]},
+		{"user_id", "false", defaults["user_id"]},
 	}
 
 	return claims
-}
-
-func isSocialSurvey(surveyType string) bool {
-	return surveyType == "health" || surveyType == "social" || surveyType == "ukhsa-ons"
 }
 
 func getMissingMandatoryClaims(claims []string, mandatoryClaims []Metadata) []Metadata {
@@ -695,7 +656,6 @@ func fillNonDefaults(schema QuestionnaireSchema) {
 func GetDefaultValues() map[string]string {
 	defaults := make(map[string]string)
 	collectionExerciseSid, _ := uuid.NewV4()
-	sdsDatasetId, _ := uuid.NewV4()
 
 	var PARTICIPANT_ID = "ABC-" + fmt.Sprintf("%011d", rand.Int63n(1e11))
 
@@ -727,7 +687,6 @@ func GetDefaultValues() map[string]string {
 	defaults["PARTICIPANT_ID"] = PARTICIPANT_ID
 	defaults["FIRST_NAME"] = "John"
 	defaults["TEST_QUESTIONS"] = "F"
-	defaults["sds_dataset_id"] = sdsDatasetId.String()
 	defaults["survey_id"] = "123"
 	defaults["WINDOW_START_DATE"] = "2016-05-01"
 	defaults["WINDOW_CLOSE_DATE"] = "2016-05-31"
