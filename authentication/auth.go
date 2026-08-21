@@ -8,10 +8,11 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"math/rand"
-	"net/http"
+	"log"
 	"net/url"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
@@ -21,12 +22,6 @@ import (
 	"github.com/go-jose/go-jose/v4/json"
 	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/gofrs/uuid"
-
-	"bytes"
-	"log"
-	"path"
-	"strconv"
-	"strings"
 )
 
 // KeyLoadError describes an error that can occur during key loading
@@ -116,188 +111,233 @@ type QuestionnaireSchema struct {
 	Metadata   []Metadata `json:"metadata"`
 	SchemaName string     `json:"schema_name"`
 	SurveyType string     `json:"theme"`
-	SurveyID   string     `json:"survey_id"`
 }
 
 // Metadata is a representation of the metadata within the schema with an additional `Default` value
 type Metadata struct {
-	Name      string `json:"name"`
-	Validator string `json:"type"`
-	Default   string `json:"default"`
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Optional bool   `json:"optional"`
+	Default  string `json:"default"`
 }
 
-func isTopLevelMetadata(key string) bool {
-	switch key {
-	case
-		"case_id",
-		"region_code",
-		"channel",
-		"language_code",
-		"collection_exercise_sid",
-		"response_expires_at",
-		"response_id",
-		"schema_name",
-		"schema_url",
-		"version",
-		"account_service_url":
-		return true
-	}
-	return false
+var settableTopLevelMetadata = []string{
+	"case_id",
+	"collection_exercise_sid",
+	"response_id",
+	"channel",
+	"language_code",
+	"account_service_url",
+	"account_service_log_out_url",
 }
 
-func getSurveyMetadataFromClaims(
-	claimValues map[string][]string,
-	data map[string]interface{},
-	claims map[string]interface{},
-	surveyMetadata map[string]interface{},
-) {
-	for key, value := range claimValues {
-		switch {
-		case isTopLevelMetadata(key):
-			claims[key] = value[0]
-		case key == "roles":
-			claims[key] = value
-		default:
-			data[key] = value[0]
-		}
-	}
-	surveyMetadata["data"] = data
-	claims["survey_metadata"] = surveyMetadata
+var defaultSurveyMetadataValues = map[string]string{
+	"case_type":        "B",
+	"user_id":          "UNKNOWN",
+	"period_id":        "201605",
+	"ru_ref":           "12345678901A",
+	"ru_name":          "ESSENTIAL ENTERPRISE LTD.",
+	"ref_p_start_date": "2016-05-01",
+	"ref_p_end_date":   "2016-05-31",
+	"return_by":        "2016-06-12",
+	"trad_as":          "ESSENTIAL ENTERPRISE LTD.",
+	"employment_date":  "2016-06-10",
+	"display_address":  "68 Abingdon Road, Goathill",
 }
 
-func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchema) (claims map[string]interface{}) {
-
-	var roles []string
-	if rolesValues, ok := claimValues["roles"]; ok {
-		roles = rolesValues
-	} else {
-		roles = []string{"dumper"}
+// Get the claim value from the submitted values, reporting any missing values
+func getClaimValue(submittedValues url.Values, claimName string) (string, bool, error) {
+	values, ok := submittedValues[claimName]
+	if !ok || len(values) == 0 {
+		return "", true, nil
 	}
 
-	claims = make(map[string]interface{})
+	// Although roles can have multiple values, it's not configurable / settable via the submitted values
+	if len(values) > 1 {
+		return "", false, fmt.Errorf("expected one value for claim %q, got %d", claimName, len(values))
+	}
 
-	claims["roles"] = roles
-	TxID, _ := uuid.NewV4()
-	claims["tx_id"] = TxID.String()
-	claims["version"] = "v2"
-	claimValues["survey_id"] = []string{schema.SurveyID}
+	// If the value is an empty string, treat it as missing
+	if values[0] == "" {
+		return "", true, nil
+	}
 
-	surveyMetadata := make(map[string]interface{})
-	data := make(map[string]interface{})
-
-	getSurveyMetadataFromClaims(claimValues, data, claims, surveyMetadata)
-
-	log.Printf("Using claims: %s", claims)
-
-	return claims
+	return values[0], false, nil
 }
 
-// GenerateJwtClaims creates a jwtClaim needed to generate a token
-func GenerateJwtClaims() (jwtClaims map[string]interface{}) {
+func generateJwtClaims() (jwtClaims map[string]interface{}) {
 	issued := time.Now()
-	expires := issued.Add(time.Minute * 10) // Future enhancement: support custom exp via request payload.
+	expires := issued.Add(time.Minute * 10)
 
 	jwtClaims = make(map[string]interface{})
 
 	jwtClaims["iat"] = jwt.NewNumericDate(issued)
 	jwtClaims["exp"] = jwt.NewNumericDate(expires)
-	jti, _ := uuid.NewV4()
-	jwtClaims["jti"] = jti.String()
+	jwtClaims["jti"] = uuid.Must(uuid.NewV4()).String()
 
 	return jwtClaims
 }
 
-func launcherSchemaFromURL(url string) (launcherSchema surveys.LauncherSchema, errMsg string) {
+func addTopLevelClaims(claims map[string]interface{}, submittedValues url.Values, flushAction bool) error {
+	if flushAction {
+		claims["roles"] = []string{"flusher"}
+	} else {
+		claims["roles"] = []string{"dumper"}
+	}
+
+	claims["tx_id"] = uuid.Must(uuid.NewV4()).String()
+	claims["version"] = "v2"
+
+	for _, key := range settableTopLevelMetadata {
+		value, missing, err := getClaimValue(submittedValues, key)
+		if err != nil {
+			return err
+		}
+		if !missing {
+			claims[key] = value
+		}
+	}
+
+	return nil
+}
+
+func validateRemoteSchemaExists(url string) error {
 	resp, err := clients.GetHTTPClient().Get(url)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("failed to load schema from %s: %w", url, err)
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != 200 {
-		return launcherSchema, fmt.Sprintf("Failed to load Schema from %s", url)
+		return fmt.Errorf("failed to load schema from %s", url)
 	}
 
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	validationError := validateSchema(responseBody)
-	if validationError != "" {
-		return launcherSchema, validationError
-	}
-
-	var schema QuestionnaireSchema
-	if err := json.Unmarshal(responseBody, &schema); err != nil {
-		panic(err)
-	}
-
-	cacheBust := ""
-	if !strings.Contains(url, "?") {
-		cacheBust = "?bust=" + time.Now().Format("20060102150405")
-	}
-
-	schemaName := ""
-
-	if schema.SchemaName == "" {
-		lastSlash := strings.LastIndex(url, "/")
-		if lastSlash != -1 {
-			lastDot := strings.LastIndex(url, ".")
-			if lastDot == -1 {
-				lastDot = len(url)
-			}
-			schemaName = url[lastSlash+1 : lastDot]
-		}
-	} else {
-		schemaName = schema.SchemaName
-	}
-
-	launcherSchema = surveys.LauncherSchema{
-		URL:        url + cacheBust,
-		Name:       schemaName,
-		SurveyType: schema.SurveyType,
-	}
-
-	return launcherSchema, ""
+	return nil
 }
 
-func validateSchema(payload []byte) (errMsg string) {
-	if settings.Get("SCHEMA_VALIDATOR_URL") == "" {
+func addSchemaClaim(claims map[string]interface{}, launcherSchema surveys.LauncherSchema) error {
+	if launcherSchema.URL != "" {
+		if err := validateRemoteSchemaExists(launcherSchema.URL); err != nil {
+			return err
+		}
+
+		if !strings.Contains(launcherSchema.URL, "?") {
+			claims["schema_url"] = launcherSchema.URL + "?bust=" + time.Now().Format("20060102150405")
+		} else {
+			claims["schema_url"] = launcherSchema.URL
+		}
+
+		return nil
+	}
+
+	if launcherSchema.Name != "" {
+		if strings.HasPrefix(launcherSchema.Name, "census_") {
+			schema, err := getCensusSchemaClaim(launcherSchema.Name)
+			if err != nil {
+				return err
+			}
+			claims["schema"] = schema
+			return nil
+		}
+
+		claims["schema_name"] = launcherSchema.Name
+	}
+
+	return nil
+}
+
+func getCensusSchemaClaim(schemaName string) (map[string]string, error) {
+	formTypes := []struct {
+		name string
+		code string
+	}{
+		{name: "household", code: "H"},
+		{name: "individual", code: "I"},
+		{name: "communal_establishment", code: "C"},
+	}
+
+	censusSchemaName := strings.TrimPrefix(schemaName, "census_")
+	for _, formType := range formTypes {
+		prefix := formType.name + "_"
+		if strings.HasPrefix(censusSchemaName, prefix) {
+			regionCode := strings.TrimPrefix(censusSchemaName, prefix)
+			if regionCode == "" {
+				return nil, fmt.Errorf("invalid census schema name %q", schemaName)
+			}
+
+			return map[string]string{
+				"survey":      "census",
+				"form_type":   formType.code,
+				"region_code": strings.ToUpper(strings.ReplaceAll(regionCode, "_", "-")),
+			}, nil
+		}
+	}
+
+	return nil, fmt.Errorf("invalid census schema name %q", schemaName)
+}
+
+func defaultSurveyMetadataValue(metadata Metadata) string {
+	if value := defaultSurveyMetadataValues[metadata.Name]; value != "" {
+		return value
+	}
+
+	switch metadata.Type {
+	case "date":
+		return "2016-05-11"
+	case "string":
+		return "Dummy text"
+	case "url":
+		return "https://example.com"
+	case "uuid":
+		return uuid.Must(uuid.NewV4()).String()
+	case "iso_8601_date_string":
+		return "2016-05-10T12:34:56+00:00"
+	default:
 		return ""
 	}
-
-	validateURL, _ := url.Parse(settings.Get("SCHEMA_VALIDATOR_URL"))
-	validateURL.Path = path.Join(validateURL.Path, "validate")
-
-	log.Println("Validating schema: ", validateURL.String())
-
-	resp, err := http.Post(validateURL.String(), "application/json", bytes.NewBuffer(payload))
-	if err != nil {
-		return err.Error()
-	}
-	defer resp.Body.Close() //nolint:errcheck
-
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err.Error()
-	}
-
-	if resp.StatusCode != 200 {
-		return string(responseBody)
-	}
-
-	return ""
 }
 
-func getSchemaClaims(launcherSchema surveys.LauncherSchema) map[string]interface{} {
+func generateSurveyMetadataClaims(submittedValues url.Values, schemaMetadata []Metadata) (map[string]interface{}, error) {
+	surveyMetadataClaims := make(map[string]interface{})
 
-	schemaClaims := make(map[string]interface{})
-	if launcherSchema.URL != "" {
-		schemaClaims["schema_url"] = launcherSchema.URL
+	for _, metadata := range schemaMetadata {
+		name := metadata.Name
+		value, missing, err := getClaimValue(submittedValues, name)
+		if err != nil {
+			return nil, err
+		}
+
+		if missing {
+			if metadata.Optional {
+				continue
+			}
+			if metadata.Default != "" {
+				surveyMetadataClaims[name] = metadata.Default
+				continue
+			}
+			if metadata.Type == "boolean" {
+				// An unchecked checkbox will not submit a value, so default to false
+				// This should use radio options so the false is explicit and this could be removed
+				surveyMetadataClaims[name] = false
+				continue
+			}
+
+			continue
+		}
+
+		if metadata.Type == "boolean" {
+			booleanValue, err := strconv.ParseBool(value)
+			if err != nil {
+				return nil, fmt.Errorf("invalid boolean value %v for metadata %q: %w", value, name, err)
+			}
+			surveyMetadataClaims[name] = booleanValue
+			continue
+		}
+
+		surveyMetadataClaims[name] = value
 	}
 
-	return schemaClaims
+	return surveyMetadataClaims, nil
 }
 
 // TokenError describes an error that can occur during JWT generation
@@ -320,8 +360,7 @@ func (e *TokenError) Error() string {
 	return err
 }
 
-// generateTokenFromClaims creates a token though encryption using the private and public keys
-func generateTokenFromClaims(cl map[string]interface{}) (string, *TokenError) {
+func generateTokenWithClaims(cl map[string]interface{}) (string, *TokenError) {
 	privateKeyResult, keyErr := loadSigningKey()
 	if keyErr != nil {
 		return "", &TokenError{Desc: "Error loading signing key", From: keyErr}
@@ -361,215 +400,62 @@ func generateTokenFromClaims(cl map[string]interface{}) (string, *TokenError) {
 	return token, nil
 }
 
-func getBooleanOrDefault(key string, values map[string][]string, defaultValue bool) bool {
-	if keyValues, ok := values[key]; ok {
-		booleanValue, _ := strconv.ParseBool(keyValues[0])
-		return booleanValue
+// GenerateToken creates a signed and encrypted JWT from the submitted values
+func GenerateToken(submittedValues url.Values, flushAction bool) (string, error) {
+	launcherSchema := surveys.GetLauncherSchema(submittedValues.Get("schema_name"), submittedValues.Get("schema_url"))
+
+	claims := generateJwtClaims()
+
+	if err := addTopLevelClaims(claims, submittedValues, flushAction); err != nil {
+		return "", fmt.Errorf("add top level claims failed: %w", err)
 	}
 
-	return defaultValue
-}
-
-func getStringOrDefault(key string, values map[string][]string, defaultValue string) string {
-	if keyValues, ok := values[key]; ok {
-		return keyValues[0]
+	if err := addSchemaClaim(claims, launcherSchema); err != nil {
+		return "", fmt.Errorf("add schema claim failed: %w", err)
 	}
 
-	return defaultValue
-}
-
-// GenerateTokenFromDefaultsV2 coverts a set of DEFAULT values into a JWT
-func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, urlValues url.Values) (token string, errMsg string) {
-	launcherSchema, validationError := launcherSchemaFromURL(schemaURL)
-	if validationError != "" {
-		return "", validationError
+	schema, err := GetSchema(launcherSchema)
+	if err != nil {
+		return "", fmt.Errorf("get schema failed: %w", err)
 	}
-
-	schema, err := getSchema(launcherSchema)
-	if err != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", err)
+	surveyMetadataClaims, err := generateSurveyMetadataClaims(submittedValues, schema.Metadata)
+	if err != nil {
+		return "", fmt.Errorf("generate survey metadata claims failed: %w", err)
 	}
+	claims["survey_metadata"] = surveyMetadataClaims
 
-	urlValues["account_service_url"] = []string{accountServiceURL}
+	log.Printf("Using claims: %s", claims)
 
-	claims := generateClaimsV2(urlValues, schema)
-
-	requiredSchemaMetadata, requiredMetadataErr := getRequiredSchemaMetadata(launcherSchema)
-	if requiredMetadataErr != "" {
-		return "", fmt.Sprintf("getRequiredSchemaMetadata failed err: %v", requiredMetadataErr)
-	}
-
-	surveyMetadata := make(map[string]interface{})
-	updatedData := make(map[string]interface{})
-
-	if claims["survey_metadata"] != nil {
-		surveyMetadata = claims["survey_metadata"].(map[string]interface{})
-	}
-
-	initialData := surveyMetadata["data"].(map[string]interface{})
-
-	for key, value := range initialData {
-		updatedData[key] = value
-	}
-
-	/*
-		The method call below is used to add boolean type URL parameters to requiredSchemaMetadata as without it,
-		it leads to improper typing, e.g. flag_1=true, 'true' would be considered a string rather than an boolean
-	*/
-	requiredSchemaMetadata = addURLBooleanMetadata(updatedData, requiredSchemaMetadata)
-
-	for _, metadata := range requiredSchemaMetadata {
-		if metadata.Validator == "boolean" {
-			updatedData[metadata.Name] = getBooleanOrDefault(metadata.Name, urlValues, false)
-
-			continue
-		}
-		updatedData[metadata.Name] = getStringOrDefault(metadata.Name, urlValues, metadata.Default)
-	}
-
-	surveyMetadata["data"] = updatedData
-	claims["survey_metadata"] = surveyMetadata
-
-	jwtClaims := GenerateJwtClaims()
-	for key, v := range jwtClaims {
-		claims[key] = v
-	}
-
-	schemaClaims := getSchemaClaims(launcherSchema)
-	for key, v := range schemaClaims {
-		claims[key] = v
-	}
-
-	token, tokenError := generateTokenFromClaims(claims)
+	token, tokenError := generateTokenWithClaims(claims)
 	if tokenError != nil {
-		return token, fmt.Sprintf("GenerateTokenFromDefaults failed err: %v", tokenError)
+		return token, fmt.Errorf("generate token with claims failed: %v", tokenError)
 	}
 
-	return token, ""
+	return token, nil
 }
 
-func addURLBooleanMetadata(updatedMetadata map[string]interface{}, requiredSchemaMetadata []Metadata) []Metadata {
-	for metadataName, metadataValue := range updatedMetadata {
-		convertedValue := strings.ToLower(metadataValue.(string))
-		if strings.EqualFold(convertedValue, "true") || strings.Contains(convertedValue, "false") {
-			requiredSchemaMetadata = append(requiredSchemaMetadata, Metadata{Name: metadataName, Validator: "boolean", Default: "false"})
-		}
-	}
-	return requiredSchemaMetadata
-}
-
-// TransformSchemaParamsToName Returns a schema name from business schema parameters
-func TransformSchemaParamsToName(postValues url.Values) string {
-	if postValues.Get("schema_name") != "" {
-		return postValues["schema_name"][0]
+// GetSchema returns a QuestionnaireSchema and any error from the provided LauncherSchema
+func GetSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, error) {
+	responseBody, err := getSchemaContent(launcherSchema)
+	if err != nil {
+		return QuestionnaireSchema{}, fmt.Errorf("failed to get schema: %w", err)
 	}
 
-	eqID := postValues.Get("eq_id")
-	formType := postValues.Get("form_type")
-	schemaName := fmt.Sprintf("%s_%s", eqID, formType)
-
-	return schemaName
-}
-
-// GenerateTokenFromPost converts a set of POST values into a JWT
-func GenerateTokenFromPost(postValues url.Values) (string, string) {
-	log.Println("POST received: ", postValues)
-
-	schemaName := TransformSchemaParamsToName(postValues)
-	schemaURL := postValues.Get("schema_url")
-
-	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaURL)
-
-	schema, err := getSchema(launcherSchema)
-	if err != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", err)
-	}
-
-	var claims = generateClaimsV2(postValues, schema)
-
-	jwtClaims := GenerateJwtClaims()
-	for key, v := range jwtClaims {
-		claims[key] = v
-	}
-
-	schemaClaims := getSchemaClaims(launcherSchema)
-	for key, v := range schemaClaims {
-		claims[key] = v
-	}
-
-	requiredMetadata, requiredMetadataErr := getRequiredSchemaMetadata(launcherSchema)
-	if requiredMetadataErr != "" {
-		return "", fmt.Sprintf(" getRequiredSchemaMetadata failed err: %v", requiredMetadataErr)
-	}
-
-	// Doesn't work for top level boolean metadata
-	for _, metadata := range requiredMetadata {
-		if metadata.Validator == "boolean" {
-			surveyMetadata := claims["survey_metadata"].(map[string]interface{})["data"]
-			_, isset := surveyMetadata.(map[string]interface{})[metadata.Name]
-			surveyMetadata.(map[string]interface{})[metadata.Name] = isset
-		}
-	}
-
-	if launcherSchema.Name != "" && claims["schema_name"] == "" {
-		claims["schema_name"] = launcherSchema.Name
-	}
-
-	token, tokenError := generateTokenFromClaims(claims)
-	if tokenError != nil {
-		return token, fmt.Sprintf("GenerateTokenFromPost failed err: %v", tokenError)
-	}
-
-	return token, ""
-}
-
-// GetSurveyData returns a QuestionnaireSchema and any error from the provided LauncherSchema
-func GetSurveyData(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, string) {
-	schema, err := getSchema(launcherSchema)
-	if err != "" {
-		return QuestionnaireSchema{}, fmt.Sprintf("getSchema failed err: %v", err)
-	}
-
-	defaults := GetDefaultValues()
-
-	for i, value := range schema.Metadata {
-
-		if strings.Contains(value.Name, "BARCODE") {
-			schema.Metadata[i].Default = "BAR" + fmt.Sprintf("%08d", rand.Int63n(1e8))
-		} else {
-			schema.Metadata[i].Default = defaults[value.Name]
-		}
-
-		if value.Validator == "boolean" {
-			schema.Metadata[i].Default = "false"
-		}
-	}
-
-	fillNonDefaults(schema)
-
-	claims := make([]string, 0)
-	for _, v := range schema.Metadata {
-		claims = append(claims, v.Name)
-	}
-
-	mandatoryClaims := getMandatatoryClaims(schema.SurveyType, defaults)
-
-	missingClaims := getMissingMandatoryClaims(claims, mandatoryClaims)
-
-	schema.Metadata = append(schema.Metadata, missingClaims...)
-
-	return schema, ""
-}
-
-// getRequiredSchemaMetadata Gets the required metadata from a schema
-func getRequiredSchemaMetadata(launcherSchema surveys.LauncherSchema) ([]Metadata, string) {
-	surveyData, err := GetSurveyData(launcherSchema)
-	return surveyData.Metadata, err
-}
-
-func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, string) {
-	var url string
 	var schema QuestionnaireSchema
+	if err := json.Unmarshal(responseBody, &schema); err != nil {
+		log.Print(err)
+		return QuestionnaireSchema{}, fmt.Errorf("failed to unmarshal schema: %w", err)
+	}
+
+	for i, metadata := range schema.Metadata {
+		schema.Metadata[i].Default = defaultSurveyMetadataValue(metadata)
+	}
+
+	return schema, nil
+}
+
+func getSchemaContent(launcherSchema surveys.LauncherSchema) ([]byte, error) {
+	var url string
 
 	client := clients.GetHTTPClient()
 
@@ -583,119 +469,25 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 		url = fmt.Sprintf("%s/schemas/%s", hostURL, launcherSchema.Name)
 	}
 
-	log.Println("Loading metadata from schema:", url)
+	log.Println("Loading schema from:", url)
 
 	resp, err := client.Get(url)
 	if err != nil {
 		log.Println("Failed to load schema from:", url)
-		return schema, fmt.Sprintf("Failed to load Schema from %s", url)
+		return nil, fmt.Errorf("failed to load schema from %s: %w", url, err)
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode != 200 {
 		log.Print("Invalid response code for schema from: ", url)
-		return schema, fmt.Sprintf("Failed to load Schema from %s", url)
+		return nil, fmt.Errorf("failed to load schema from %s", url)
 	}
 
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		log.Print(err)
-		return schema, fmt.Sprintf("Failed to load Schema from %s", url)
+		return nil, fmt.Errorf("failed to load schema from %s: %w", url, err)
 	}
 
-	if err := json.Unmarshal(responseBody, &schema); err != nil {
-		log.Print(err)
-		return schema, fmt.Sprintf("Failed to unmarshal Schema from %s", url)
-	}
-
-	return schema, ""
-}
-
-func getMandatatoryClaims(_ string, defaults map[string]string) []Metadata {
-	var claims = []Metadata{
-		{"ru_ref", "false", defaults["ru_ref"]},
-		{"period_id", "false", defaults["period_id"]},
-		{"user_id", "false", defaults["user_id"]},
-	}
-
-	return claims
-}
-
-func getMissingMandatoryClaims(claims []string, mandatoryClaims []Metadata) []Metadata {
-	missingClaims := make([]Metadata, 0)
-	for _, v := range mandatoryClaims {
-		if !(stringInSlice(v.Name, claims)) {
-			missingClaims = append(missingClaims, v)
-		}
-	}
-
-	return missingClaims
-}
-
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
-}
-
-func fillNonDefaults(schema QuestionnaireSchema) {
-	arbitraryUUID, _ := uuid.NewV4()
-	metadataValues := make(map[string]string)
-	metadataValues["date"] = "2016-05-11"
-	metadataValues["string"] = "Dummy text"
-	metadataValues["url"] = "https://example.com"
-	metadataValues["uuid"] = arbitraryUUID.String()
-	metadataValues["iso_8601_date_string"] = "2016-05-10T12:34:56+00:00"
-	for i, value := range schema.Metadata {
-		if value.Default == "" {
-			schema.Metadata[i].Default = metadataValues[(value.Validator)]
-		}
-	}
-}
-
-// GetDefaultValues Returns a map of default values for metadata keys
-func GetDefaultValues() map[string]string {
-	defaults := make(map[string]string)
-	collectionExerciseSid, _ := uuid.NewV4()
-
-	var participantID = "ABC-" + fmt.Sprintf("%011d", rand.Int63n(1e11))
-
-	defaults["collection_exercise_sid"] = collectionExerciseSid.String()
-	defaults["qid"] = fmt.Sprintf("%016d", rand.Int63n(1e16))
-	defaults["version"] = "v2"
-	defaults["case_type"] = "B"
-	defaults["user_id"] = "UNKNOWN"
-	defaults["period_id"] = "201605"
-	defaults["period_str"] = "May 2017"
-	defaults["participant_id"] = participantID
-	defaults["ru_ref"] = "12345678901A"
-	defaults["ru_name"] = "ESSENTIAL ENTERPRISE LTD."
-	defaults["ref_p_start_date"] = "2016-05-01"
-	defaults["ref_p_end_date"] = "2016-05-31"
-	defaults["return_by"] = "2016-06-12"
-	defaults["trad_as"] = "ESSENTIAL ENTERPRISE LTD."
-	defaults["employment_date"] = "2016-06-10"
-	defaults["region_code"] = "GB-ENG"
-	defaults["language_code"] = "en"
-	defaults["case_ref"] = "1000000000000001"
-	defaults["address_line1"] = "68 Abingdon Road"
-	defaults["address_line2"] = ""
-	defaults["locality"] = ""
-	defaults["town_name"] = "Goathill"
-	defaults["postcode"] = "PE12 4GH"
-	defaults["display_address"] = "68 Abingdon Road, Goathill"
-	defaults["country"] = "E"
-	defaults["PARTICIPANT_ID"] = participantID
-	defaults["FIRST_NAME"] = "John"
-	defaults["TEST_QUESTIONS"] = "F"
-	defaults["survey_id"] = "123"
-	defaults["WINDOW_START_DATE"] = "2016-05-01"
-	defaults["WINDOW_CLOSE_DATE"] = "2016-05-31"
-	defaults["PORTAL_ID"] = fmt.Sprintf("%07d", rand.Int63n(1e7))
-	defaults["PARTICIPANT_WINDOW_ID"] = participantID + "-" + fmt.Sprintf("%03d", rand.Int63n(1e3))
-
-	return defaults
+	return responseBody, nil
 }
