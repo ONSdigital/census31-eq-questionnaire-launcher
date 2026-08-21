@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/authentication"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
@@ -174,7 +173,6 @@ func quickLauncherHandler(w http.ResponseWriter, r *http.Request) {
 	urlValues.Add("case_id", caseID.String())
 	urlValues.Add("response_id", randomNumericString(16))
 	urlValues.Add("language_code", defaultValues["language_code"])
-	urlValues.Add("response_expires_at", time.Now().AddDate(0, 0, 7).Format("2006-01-02T15:04:05+00:00"))
 
 	token := ""
 	err := ""

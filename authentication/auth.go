@@ -8,7 +8,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -116,7 +115,6 @@ type QuestionnaireSchema struct {
 	Metadata   []Metadata `json:"metadata"`
 	SchemaName string     `json:"schema_name"`
 	SurveyType string     `json:"theme"`
-	SurveyID   string     `json:"survey_id"`
 }
 
 // Metadata is a representation of the metadata within the schema with an additional `Default` value
@@ -134,7 +132,6 @@ func isTopLevelMetadata(key string) bool {
 		"channel",
 		"language_code",
 		"collection_exercise_sid",
-		"response_expires_at",
 		"response_id",
 		"schema_name",
 		"schema_url",
@@ -147,25 +144,28 @@ func isTopLevelMetadata(key string) bool {
 
 func getSurveyMetadataFromClaims(
 	claimValues map[string][]string,
-	data map[string]interface{},
 	claims map[string]interface{},
-	surveyMetadata map[string]interface{},
 ) {
+	surveyMetadata := make(map[string]interface{})
+
 	for key, value := range claimValues {
+		if len(value) == 0 || value[0] == "" {
+			continue
+		}
+
 		switch {
 		case isTopLevelMetadata(key):
 			claims[key] = value[0]
 		case key == "roles":
 			claims[key] = value
 		default:
-			data[key] = value[0]
+			surveyMetadata[key] = value[0]
 		}
 	}
-	surveyMetadata["data"] = data
 	claims["survey_metadata"] = surveyMetadata
 }
 
-func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchema) (claims map[string]interface{}) {
+func generateClaimsV2(claimValues map[string][]string) (claims map[string]interface{}) {
 
 	var roles []string
 	if rolesValues, ok := claimValues["roles"]; ok {
@@ -180,12 +180,8 @@ func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchem
 	TxID, _ := uuid.NewV4()
 	claims["tx_id"] = TxID.String()
 	claims["version"] = "v2"
-	claimValues["survey_id"] = []string{schema.SurveyID}
 
-	surveyMetadata := make(map[string]interface{})
-	data := make(map[string]interface{})
-
-	getSurveyMetadataFromClaims(claimValues, data, claims, surveyMetadata)
+	getSurveyMetadataFromClaims(claimValues, claims)
 
 	log.Printf("Using claims: %s", claims)
 
@@ -385,14 +381,9 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 		return "", validationError
 	}
 
-	schema, err := getSchema(launcherSchema)
-	if err != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", err)
-	}
-
 	urlValues["account_service_url"] = []string{accountServiceURL}
 
-	claims := generateClaimsV2(urlValues, schema)
+	claims := generateClaimsV2(urlValues)
 
 	requiredSchemaMetadata, requiredMetadataErr := getRequiredSchemaMetadata(launcherSchema)
 	if requiredMetadataErr != "" {
@@ -480,12 +471,7 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 
 	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaURL)
 
-	schema, err := getSchema(launcherSchema)
-	if err != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", err)
-	}
-
-	var claims = generateClaimsV2(postValues, schema)
+	var claims = generateClaimsV2(postValues)
 
 	jwtClaims := GenerateJwtClaims()
 	for key, v := range jwtClaims {
@@ -533,15 +519,10 @@ func GetSurveyData(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, 
 	defaults := GetDefaultValues()
 
 	for i, value := range schema.Metadata {
-
-		if strings.Contains(value.Name, "BARCODE") {
-			schema.Metadata[i].Default = "BAR" + fmt.Sprintf("%08d", rand.Int63n(1e8))
-		} else {
-			schema.Metadata[i].Default = defaults[value.Name]
-		}
-
 		if value.Validator == "boolean" {
 			schema.Metadata[i].Default = "false"
+		} else {
+			schema.Metadata[i].Default = defaults[value.Name]
 		}
 	}
 
@@ -551,12 +532,6 @@ func GetSurveyData(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, 
 	for _, v := range schema.Metadata {
 		claims = append(claims, v.Name)
 	}
-
-	mandatoryClaims := getMandatatoryClaims(schema.SurveyType, defaults)
-
-	missingClaims := getMissingMandatoryClaims(claims, mandatoryClaims)
-
-	schema.Metadata = append(schema.Metadata, missingClaims...)
 
 	return schema, ""
 }
@@ -611,27 +586,6 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 	return schema, ""
 }
 
-func getMandatatoryClaims(_ string, defaults map[string]string) []Metadata {
-	var claims = []Metadata{
-		{"ru_ref", "false", defaults["ru_ref"]},
-		{"period_id", "false", defaults["period_id"]},
-		{"user_id", "false", defaults["user_id"]},
-	}
-
-	return claims
-}
-
-func getMissingMandatoryClaims(claims []string, mandatoryClaims []Metadata) []Metadata {
-	missingClaims := make([]Metadata, 0)
-	for _, v := range mandatoryClaims {
-		if !(stringInSlice(v.Name, claims)) {
-			missingClaims = append(missingClaims, v)
-		}
-	}
-
-	return missingClaims
-}
-
 func stringInSlice(a string, list []string) bool {
 	for _, b := range list {
 		if b == a {
@@ -661,16 +615,11 @@ func GetDefaultValues() map[string]string {
 	defaults := make(map[string]string)
 	collectionExerciseSid, _ := uuid.NewV4()
 
-	var participantID = "ABC-" + fmt.Sprintf("%011d", rand.Int63n(1e11))
-
 	defaults["collection_exercise_sid"] = collectionExerciseSid.String()
-	defaults["qid"] = fmt.Sprintf("%016d", rand.Int63n(1e16))
 	defaults["version"] = "v2"
 	defaults["case_type"] = "B"
 	defaults["user_id"] = "UNKNOWN"
 	defaults["period_id"] = "201605"
-	defaults["period_str"] = "May 2017"
-	defaults["participant_id"] = participantID
 	defaults["ru_ref"] = "12345678901A"
 	defaults["ru_name"] = "ESSENTIAL ENTERPRISE LTD."
 	defaults["ref_p_start_date"] = "2016-05-01"
@@ -680,22 +629,7 @@ func GetDefaultValues() map[string]string {
 	defaults["employment_date"] = "2016-06-10"
 	defaults["region_code"] = "GB-ENG"
 	defaults["language_code"] = "en"
-	defaults["case_ref"] = "1000000000000001"
-	defaults["address_line1"] = "68 Abingdon Road"
-	defaults["address_line2"] = ""
-	defaults["locality"] = ""
-	defaults["town_name"] = "Goathill"
-	defaults["postcode"] = "PE12 4GH"
 	defaults["display_address"] = "68 Abingdon Road, Goathill"
-	defaults["country"] = "E"
-	defaults["PARTICIPANT_ID"] = participantID
-	defaults["FIRST_NAME"] = "John"
-	defaults["TEST_QUESTIONS"] = "F"
-	defaults["survey_id"] = "123"
-	defaults["WINDOW_START_DATE"] = "2016-05-01"
-	defaults["WINDOW_CLOSE_DATE"] = "2016-05-31"
-	defaults["PORTAL_ID"] = fmt.Sprintf("%07d", rand.Int63n(1e7))
-	defaults["PARTICIPANT_WINDOW_ID"] = participantID + "-" + fmt.Sprintf("%03d", rand.Int63n(1e3))
 
 	return defaults
 }

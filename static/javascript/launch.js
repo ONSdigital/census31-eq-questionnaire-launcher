@@ -220,13 +220,7 @@ function loadSchemaMetadata (schemaName, schemaUrl) {
               if (metadataField.type === 'boolean') {
                 return getInputField(fieldName, 'checkbox')
               } else if (metadataField.type === 'uuid') {
-                return (
-                  `<span>${getInputField(fieldName, 'text', uuidv4())}` +
-                  `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` +
-                  '</span>'
-                )
-              } else if (fieldName === 'survey_id' || fieldName === 'period_id') {
-                return getInputField(fieldName, 'text', fieldName === 'survey_id' ? schemaResponse.survey_id : defaultValue, false)
+                return `<span>${getInputField(fieldName, 'text', uuidv4())}` + `<img onclick="uuid('${fieldName}')" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/PjwhRE9DVFlQRSBzdmcgIFBVQkxJQyAnLS8vVzNDLy9EVEQgU1ZHIDEuMS8vRU4nICAnaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkJz48c3ZnIGhlaWdodD0iNTEycHgiIGlkPSJMYXllcl8xIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCA1MTIgNTEyOyIgdmVyc2lvbj0iMS4xIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgd2lkdGg9IjUxMnB4IiB4bWw6c3BhY2U9InByZXNlcnZlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIj48Zz48cGF0aCBkPSJNMjU2LDM4NC4xYy03MC43LDAtMTI4LTU3LjMtMTI4LTEyOC4xYzAtNzAuOCw1Ny4zLTEyOC4xLDEyOC0xMjguMVY4NGw5Niw2NGwtOTYsNTUuN3YtNTUuOCAgIGMtNTkuNiwwLTEwOC4xLDQ4LjUtMTA4LjEsMTA4LjFjMCw1OS42LDQ4LjUsMTA4LjEsMTA4LjEsMTA4LjFTMzY0LjEsMzE2LDM2NC4xLDI1NkgzODRDMzg0LDMyNywzMjYuNywzODQuMSwyNTYsMzg0LjF6Ii8+PC9nPjwvc3ZnPg==">` + '</span>'
               } else {
                 return getInputField(fieldName, 'text', defaultValue)
               }
@@ -254,37 +248,6 @@ function numericId () {
     result += chars[Math.round(Math.random() * (chars.length - 1))]
   }
   document.querySelector('#response_id').value = result
-}
-
-function setResponseExpiry (daysOffset = 7) {
-  const dt = new Date()
-  dt.setDate(dt.getDate() + daysOffset)
-  document.querySelector('#response_expires_at').value = dt
-    .toISOString()
-    .replace(/(\.\d*)/, '')
-    .replace(/Z/, '+00:00')
-}
-
-function validateForm () {
-  validateResponseExpiresAt()
-  removeUnwantedMetadata()
-}
-
-function validateResponseExpiresAt () {
-  const responseExpiresAt = Date.parse(document.querySelector('#response_expires_at').value)
-  if (isNaN(responseExpiresAt)) {
-    document.querySelector('#response_expires_at').remove()
-  }
-}
-
-// Inputs without a name will not be submitted
-function removeUnwantedMetadata () {
-  const inputs = document.getElementsByTagName('input')
-  for (const input of inputs) {
-    if (!input.value) {
-      input.removeAttribute('name')
-    }
-  }
 }
 
 function retrieveResponseId () {
@@ -341,7 +304,6 @@ function onLoad () {
   uuid('collection_exercise_sid')
   uuid('case_id')
   numericId()
-  setResponseExpiry()
   retrieveResponseId()
   initialiseTabIndex()
 
@@ -372,8 +334,6 @@ window.numericId = numericId
 window.onLoad = onLoad
 window.saveResponseId = saveResponseId
 window.setLaunchType = setLaunchType
-window.setResponseExpiry = setResponseExpiry
 window.setSchemaUrl = setSchemaUrl
 window.setSurveyType = setSurveyType
 window.uuid = uuid
-window.validateForm = validateForm
