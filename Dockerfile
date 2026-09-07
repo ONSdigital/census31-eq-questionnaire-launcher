@@ -23,9 +23,9 @@ WORKDIR /app
 # Copy the Pre-built binary file and entry point from the previous stage
 COPY --from=builder /go/bin/census31-eq-questionnaire-launcher .
 COPY docker-entrypoint.sh .
-COPY static/ /static/
-COPY templates/ /templates/
-COPY jwt-test-keys /jwt-test-keys/
+COPY static/ /app/static/
+COPY templates/ /app/templates/
+COPY jwt-test-keys/ /app/jwt-test-keys/
 
 # Create and switch to a non-root user for runtime.
 RUN addgroup -S app && adduser -S -G app app \

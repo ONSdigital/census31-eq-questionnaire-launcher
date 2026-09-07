@@ -2,16 +2,13 @@ package surveys
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log"
 	"sort"
-	"strings"
 
 	"github.com/AreaHQ/jsonhal"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
-	"github.com/ONSdigital/census31-eq-questionnaire-launcher/oidc"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -19,36 +16,9 @@ import (
 
 // LauncherSchema is a representation of a schema in the Launcher
 type LauncherSchema struct {
-	Name            string
-	SurveyType      string
-	URL             string
-	CIRInstrumentID string
-}
-
-type CIMetadata struct {
-	CIVersion        int    `json:"ci_version"`
-	DataVersion      string `json:"data_version"`
-	ValidatorVersion string `json:"validator_version"`
-	ClassifierType   string `json:"classifier_type"`
-	ClassifierValue  string `json:"classifier_value"`
-	GUID             string `json:"guid"`
-	Language         string `json:"language"`
-	PublishedAt      string `json:"published_at"`
-	SurveyID         string `json:"survey_id"`
-	Title            string `json:"title"`
-	SDSSchema        string `json:"sds_schema"`
-}
-
-type DatasetMetadata struct {
-	SurveyID            string `json:"survey_id"`
-	PeriodID            string `json:"period_id"`
-	Title               string `json:"title"`
-	SdsPublishedAt      string `json:"sds_published_at"`
-	TotalReportingUnits int    `json:"total_reporting_units"`
-	SchemaVersion       string `json:"schema_version"`
-	SdsDatasetVersion   int    `json:"sds_dataset_version"`
-	Filename            string `json:"filename"`
-	DatasetID           string `json:"dataset_id"`
+	Name       string
+	SurveyType string
+	URL        string
 }
 
 // RegisterResponse is the response from the eq-survey-register request
@@ -76,15 +46,10 @@ func LauncherSchemaFromFilename(filename string, surveyType string) LauncherSche
 // GetAvailableSchemas Gets the list of static schemas an joins them with any schemas from the eq-survey-register if defined
 func GetAvailableSchemas() map[string][]LauncherSchema {
 	runnerSchemas := getAvailableSchemasFromRunner()
-	registerSchemas := getAvailableSchemasFromRegister()
-
-	allSchemas := runnerSchemas
-	allSchemas = append(allSchemas, registerSchemas...)
-
-	sort.Sort(ByFilename(allSchemas))
+	sort.Sort(ByFilename(runnerSchemas))
 
 	schemasBySurveyType := map[string][]LauncherSchema{}
-	for _, schema := range allSchemas {
+	for _, schema := range runnerSchemas {
 		surveyType := cases.Title(language.Und).String(schema.SurveyType)
 		schemasBySurveyType[surveyType] = append(schemasBySurveyType[surveyType], schema)
 	}
@@ -98,105 +63,6 @@ type ByFilename []LauncherSchema
 func (a ByFilename) Len() int           { return len(a) }
 func (a ByFilename) Less(i, j int) bool { return a[i].Name < a[j].Name }
 func (a ByFilename) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-
-func getAvailableSchemasFromRegister() []LauncherSchema {
-
-	schemaList := []LauncherSchema{}
-
-	if settings.Get("SURVEY_REGISTER_URL") != "" {
-		resp, err := clients.GetHTTPClient().Get(settings.Get("SURVEY_REGISTER_URL"))
-		if err != nil {
-			log.Fatal("Do: ", err)
-			return []LauncherSchema{}
-		}
-		defer resp.Body.Close() //nolint:errcheck
-
-		responseBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			return schemaList
-		}
-
-		var registerResponse RegisterResponse
-		if err := json.Unmarshal(responseBody, &registerResponse); err != nil {
-			log.Print(err)
-			return schemaList
-		}
-
-		var schemas Schemas
-
-		schemasJSON, _ := json.Marshal(registerResponse.Embedded["schemas"])
-
-		if err := json.Unmarshal(schemasJSON, &schemas); err != nil {
-			log.Println(err)
-		}
-
-		for _, schema := range schemas {
-			url := schema.Links["self"]
-			schemaList = append(schemaList, LauncherSchema{
-				Name:       schema.Name,
-				URL:        url.Href,
-				SurveyType: "Other",
-			})
-		}
-	}
-
-	return schemaList
-}
-
-func GetAvailableSchemasFromCIR() []CIMetadata {
-	ciMetadataList := []CIMetadata{}
-	hostURL := settings.Get("CIR_API_BASE_URL")
-
-	client, err := oidc.ConfigureClientAuthentication(clients.GetHTTPClient(), "CIR_OAUTH2_CLIENT_ID")
-	if err != nil {
-		log.Print(err)
-		return ciMetadataList
-	}
-
-	log.Printf("CIR API Base URL: %s", hostURL)
-	url := fmt.Sprintf("%s/v2/ci_metadata", hostURL)
-
-	resp, err := client.Get(url)
-	if err != nil || resp.StatusCode != 200 {
-		log.Print(err)
-		return ciMetadataList
-	}
-	defer resp.Body.Close() //nolint:errcheck
-
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Print(err)
-		return ciMetadataList
-	}
-
-	if err := json.Unmarshal(responseBody, &ciMetadataList); err != nil {
-		log.Print(err)
-		return ciMetadataList
-	}
-
-	// Sort all schemas by survey_id to ensure test schemas are grouped together and appear after business schemas
-	// Supplementary data test schemas being exception as their id is "123" not "999"
-	sort.Slice(ciMetadataList, func(i, j int) bool { return ciMetadataList[i].SurveyID < ciMetadataList[j].SurveyID })
-	slice := 0
-	for i := range ciMetadataList {
-		if strings.Contains(ciMetadataList[i].Title, "Test") && ciMetadataList[i].SurveyID != "123" {
-			slice = i
-			break
-		}
-	}
-
-	// Split the list into test and business schemas
-	ciMetadataListSlice := ciMetadataList[0:slice]
-	ciTestMetadataListSlice := ciMetadataList[slice:]
-
-	// Sort test schemas alphabetically
-	sort.Slice(ciTestMetadataListSlice, func(i, j int) bool { return ciTestMetadataListSlice[i].Title < ciTestMetadataListSlice[j].Title })
-
-	// Finally join the list back together with business schemas appearing before test schemas
-	ciMetadataList = ciMetadataListSlice
-	ciMetadataList = append(ciMetadataList, ciTestMetadataListSlice...)
-	return ciMetadataList
-}
 
 func getAvailableSchemasFromRunner() []LauncherSchema {
 
@@ -255,45 +121,8 @@ func FindSurveyByName(name string) LauncherSchema {
 	panic("Schema not found")
 }
 
-func GetSupplementaryDataSets(surveyId string, periodId string) ([]DatasetMetadata, error) {
-	datasetList := []DatasetMetadata{}
-	hostURL := settings.Get("SDS_API_BASE_URL")
-
-	client, err := oidc.ConfigureClientAuthentication(clients.GetHTTPClient(), "SDS_OAUTH2_CLIENT_ID")
-	if err != nil {
-		log.Print(err)
-		return datasetList, errors.New("unable to generate SDS authentication credentials")
-	}
-
-	log.Printf("SDS API Base URL: %s", hostURL)
-	url := fmt.Sprintf("%s/v1/dataset_metadata?survey_id=%s&period_id=%s", hostURL, surveyId, periodId)
-	log.Printf("Getting SDS metadata: %s", url)
-	resp, err := client.Get(url)
-
-	if err != nil || (resp.StatusCode != 200 && resp.StatusCode != 404) {
-		return datasetList, errors.New("unable to fetch supplementary data")
-	}
-
-	if resp.StatusCode == 404 {
-		return datasetList, nil
-	}
-
-	defer resp.Body.Close() //nolint:errcheck
-
-	responseBody, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return datasetList, errors.New("unable to read response body of supplementary data")
-	}
-
-	if err := json.Unmarshal(responseBody, &datasetList); err != nil {
-		log.Print(err)
-		return datasetList, fmt.Errorf("%v", err)
-	}
-	return datasetList, nil
-}
-
 // Return a LauncherSchema instance by loading schema from name or URL
-func GetLauncherSchema(schemaName string, schemaUrl string, cirInstrumentId string) LauncherSchema {
+func GetLauncherSchema(schemaName string, schemaUrl string) LauncherSchema {
 	var launcherSchema LauncherSchema
 
 	switch {
@@ -303,16 +132,11 @@ func GetLauncherSchema(schemaName string, schemaUrl string, cirInstrumentId stri
 			URL:  schemaUrl,
 			Name: schemaName,
 		}
-	case cirInstrumentId != "":
-		log.Println("Searching for schema by CIR Instrument ID: " + cirInstrumentId)
-		launcherSchema = LauncherSchema{
-			CIRInstrumentID: cirInstrumentId,
-		}
 	case schemaName != "":
 		log.Println("Searching for schema by name: " + schemaName)
 		launcherSchema = FindSurveyByName(schemaName)
 	default:
-		panic("Either `schema_name` or `schema_url` or `cir_instrument_id` must be provided.")
+		panic("Either `schema_name` or `schema_url` must be provided.")
 	}
 
 	return launcherSchema

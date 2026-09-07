@@ -62,10 +62,8 @@ func serveTemplate(templateName string, data interface{}, w http.ResponseWriter,
 
 type page struct {
 	Schemas                 map[string][]surveys.LauncherSchema
-	CirSchemas              []surveys.CIMetadata
 	AccountServiceURL       string
 	AccountServiceLogOutURL string
-	SdsEnabled              string
 }
 
 func getStatusPage(w http.ResponseWriter, r *http.Request) {
@@ -79,10 +77,8 @@ func getStatusPage(w http.ResponseWriter, r *http.Request) {
 func getLaunchHandler(w http.ResponseWriter, r *http.Request) {
 	p := page{
 		Schemas:                 surveys.GetAvailableSchemas(),
-		CirSchemas:              surveys.GetAvailableSchemasFromCIR(),
 		AccountServiceURL:       getAccountServiceURL(r),
 		AccountServiceLogOutURL: getAccountServiceURL(r),
-		SdsEnabled:              settings.Get("SDS_ENABLED_IN_ENV"),
 	}
 	serveTemplate("launch.html", p, w, r)
 }
@@ -99,9 +95,8 @@ func postLaunchHandler(w http.ResponseWriter, r *http.Request) {
 func getSurveyDataHandler(w http.ResponseWriter, r *http.Request) {
 	schemaName := r.URL.Query().Get("schema_name")
 	schemaUrl := r.URL.Query().Get("schema_url")
-	cirInstrumentId := r.URL.Query().Get("cir_instrument_id")
 
-	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaUrl, cirInstrumentId)
+	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaUrl)
 
 	surveyData, err := authentication.GetSurveyData(launcherSchema)
 
@@ -113,29 +108,6 @@ func getSurveyDataHandler(w http.ResponseWriter, r *http.Request) {
 	surveyDataJSON, _ := json.Marshal(surveyData)
 
 	_, writeError := w.Write([]byte(surveyDataJSON))
-	if writeError != nil {
-		http.Error(w, fmt.Sprintf("Write failed to write data as part of an HTTP reply: %v", writeError), 500)
-		return
-	}
-}
-
-func getSupplementaryDataHandler(w http.ResponseWriter, r *http.Request) {
-	surveyId := r.URL.Query().Get("survey_id")
-	periodId := r.URL.Query().Get("period_id")
-	sdsEnabled := settings.Get("SDS_ENABLED_IN_ENV")
-
-	if sdsEnabled != "true" {
-		return
-	}
-
-	datasets, err := surveys.GetSupplementaryDataSets(surveyId, periodId)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("GetSupplementaryDataSets err: %v", err), 500)
-		return
-	}
-	datasetJSON, _ := json.Marshal(datasets)
-
-	_, writeError := w.Write([]byte(datasetJSON))
 	if writeError != nil {
 		http.Error(w, fmt.Sprintf("Write failed to write data as part of an HTTP reply: %v", writeError), 500)
 		return
@@ -227,7 +199,6 @@ func main() {
 	r.HandleFunc("/", getLaunchHandler).Methods("GET")
 	r.HandleFunc("/", postLaunchHandler).Methods("POST")
 	r.HandleFunc("/survey-data", getSurveyDataHandler).Methods("GET")
-	r.HandleFunc("/supplementary-data", getSupplementaryDataHandler).Methods("GET")
 
 	// Author Launcher with passed parameters in Url
 	r.HandleFunc("/quick-launch", quickLauncherHandler).Methods("GET")
