@@ -113,7 +113,7 @@ To update the design system version, you need to update the version within the C
 ## Notes
 
 - There are no unit tests yet
-- JWT spec based on [ons-schema-definitions](http://ons-schema-definitions.readthedocs.io/en/latest/jwt_profile.html)
+- JWT spec based on [ons-schema-definitions](https://github.com/ONSdigital/census31-eq-questionnaire-runner-interface-definitions/blob/main/docs/jwt_profile.md)
 
 ## Settings
 
