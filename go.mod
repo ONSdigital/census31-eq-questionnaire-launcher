@@ -1,6 +1,6 @@
 module github.com/ONSdigital/census31-eq-questionnaire-launcher
 
-go 1.25.12
+go 1.25.13
 
 require (
 	github.com/AreaHQ/jsonhal v0.0.0-20160928112100-715ffaec982b

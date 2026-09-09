@@ -17,6 +17,6 @@
     "standard": {
         "env": [
             "browser"
-        ],
+        ]
     }
 }
