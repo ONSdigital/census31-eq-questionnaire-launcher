@@ -19,19 +19,8 @@ warningCode = 0
 [rule.unexported-return]
 [rule.unreachable-code]
 [rule.waitgroup-by-value]
-
-# Project-specific relaxations to avoid large renaming/doc churn.
 [rule.exported]
-Disabled = true
-
 [rule.package-comments]
-Disabled = true
-
 [rule.var-naming]
-Disabled = true
-
 [rule.redefines-builtin-id]
-Disabled = true
-
 [rule.unused-parameter]
-Disabled = true

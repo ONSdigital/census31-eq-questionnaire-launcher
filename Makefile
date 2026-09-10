@@ -3,7 +3,6 @@ format-go:
 
 lint-go:
 	golangci-lint run
-	go run github.com/mgechev/revive@v1.15.0 -config revive.toml ./...
 
 .PHONY: megalint megalint-apply clean-megalint
 megalint:

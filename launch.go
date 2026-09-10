@@ -1,3 +1,4 @@
+// Package main is the entry point for the questionnaire launcher application
 package main // import "github.com/ONSdigital/census31-eq-questionnaire-launcher"
 
 import (
@@ -66,7 +67,7 @@ type page struct {
 	AccountServiceLogOutURL string
 }
 
-func getStatusPage(w http.ResponseWriter, r *http.Request) {
+func getStatusPage(w http.ResponseWriter, _ *http.Request) {
 	_, writeError := w.Write([]byte("OK"))
 	if writeError != nil {
 		http.Error(w, fmt.Sprintf("Write failed to write data as part of an HTTP reply: %v", writeError), 500)
@@ -94,9 +95,9 @@ func postLaunchHandler(w http.ResponseWriter, r *http.Request) {
 
 func getSurveyDataHandler(w http.ResponseWriter, r *http.Request) {
 	schemaName := r.URL.Query().Get("schema_name")
-	schemaUrl := r.URL.Query().Get("schema_url")
+	schemaURL := r.URL.Query().Get("schema_url")
 
-	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaUrl)
+	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaURL)
 
 	surveyData, err := authentication.GetSurveyData(launcherSchema)
 
