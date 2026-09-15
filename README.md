@@ -97,8 +97,8 @@ To lint the go files run:
 make lint-go
 ```
 
-This will run both `golangci-lint` and `revive`. `revive` is run run via `go run` using the repository `revive.toml`,
-so no separate `revive` binary install is required.
+This will run `golangci-lint` which is also configured to run `revive`, the config for this will
+also be in the golangci.yml
 
 To format the go files run:
 

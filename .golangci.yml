@@ -6,7 +6,19 @@ linters:
   exclusions:
     paths:
       - megalinter-reports/.*
+  settings:
+    revive:
+      severity: "warning"
+      confidence: 0.8
 
-linters-settings:
-  revive:
-    config-path: ./revive.toml
+      rules:
+        - name: var-declaration
+          disabled: true
+        - name: indent-error-flow
+          disabled: true
+        - name: errorf
+          disabled: true
+        - name: empty-block
+          disabled: true
+        - name: waitgroup-by-value
+          disabled: false
