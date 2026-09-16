@@ -29,7 +29,7 @@ COPY jwt-test-keys/ /app/jwt-test-keys/
 
 # Create and switch to a non-root user for runtime.
 RUN addgroup -S -g 1000 app && adduser -S -u 1000 -G app app \
-    && chown -R app:app /app /static /templates /jwt-test-keys
+    && chown -R app:app /app
 
 EXPOSE 8000
 
