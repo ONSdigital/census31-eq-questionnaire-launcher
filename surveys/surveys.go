@@ -1,3 +1,4 @@
+// Package surveys handles survey schema loading and management
 package surveys
 
 import (
@@ -121,15 +122,15 @@ func FindSurveyByName(name string) LauncherSchema {
 	panic("Schema not found")
 }
 
-// Return a LauncherSchema instance by loading schema from name or URL
-func GetLauncherSchema(schemaName string, schemaUrl string) LauncherSchema {
+// GetLauncherSchema returns a LauncherSchema instance by loading schema from name or URL
+func GetLauncherSchema(schemaName string, schemaURL string) LauncherSchema {
 	var launcherSchema LauncherSchema
 
 	switch {
-	case schemaUrl != "":
-		log.Println("Getting schema by URL: " + schemaUrl)
+	case schemaURL != "":
+		log.Println("Getting schema by URL: " + schemaURL)
 		launcherSchema = LauncherSchema{
-			URL:  schemaUrl,
+			URL:  schemaURL,
 			Name: schemaName,
 		}
 	case schemaName != "":
