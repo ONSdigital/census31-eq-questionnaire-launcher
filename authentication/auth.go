@@ -1,3 +1,4 @@
+// Package authentication handles JWT generation and validation for survey requests
 package authentication
 
 import (
@@ -16,10 +17,10 @@ import (
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/surveys"
+	"github.com/go-jose/go-jose/v4"
+	"github.com/go-jose/go-jose/v4/json"
+	"github.com/go-jose/go-jose/v4/jwt"
 	"github.com/gofrs/uuid"
-	"gopkg.in/square/go-jose.v2"
-	"gopkg.in/square/go-jose.v2/json"
-	"gopkg.in/square/go-jose.v2/jwt"
 
 	"bytes"
 	"log"
@@ -71,6 +72,7 @@ func loadEncryptionKey() (*PublicKeyResult, *KeyLoadError) {
 		return nil, &KeyLoadError{Op: "parse", Err: "Failed to parse encryption key PEM"}
 	}
 
+	// Keep SHA-1 KID derivation for compatibility with runner key lookup.
 	kid := fmt.Sprintf("%x", sha1.Sum(keyData))
 
 	publicKey, ok := pub.(*rsa.PublicKey)
@@ -103,6 +105,7 @@ func loadSigningKey() (*PrivateKeyResult, *KeyLoadError) {
 		Type:  "PUBLIC KEY",
 		Bytes: PublicKey,
 	})
+	// Keep SHA-1 KID derivation for compatibility with runner key lookup.
 	kid := fmt.Sprintf("%x", sha1.Sum(pubBytes))
 
 	return &PrivateKeyResult{privateKey, kid}, nil
@@ -113,7 +116,7 @@ type QuestionnaireSchema struct {
 	Metadata   []Metadata `json:"metadata"`
 	SchemaName string     `json:"schema_name"`
 	SurveyType string     `json:"theme"`
-	SurveyId   string     `json:"survey_id"`
+	SurveyID   string     `json:"survey_id"`
 }
 
 // Metadata is a representation of the metadata within the schema with an additional `Default` value
@@ -177,7 +180,7 @@ func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchem
 	TxID, _ := uuid.NewV4()
 	claims["tx_id"] = TxID.String()
 	claims["version"] = "v2"
-	claimValues["survey_id"] = []string{schema.SurveyId}
+	claimValues["survey_id"] = []string{schema.SurveyID}
 
 	surveyMetadata := make(map[string]interface{})
 	data := make(map[string]interface{})
@@ -192,7 +195,7 @@ func generateClaimsV2(claimValues map[string][]string, schema QuestionnaireSchem
 // GenerateJwtClaims creates a jwtClaim needed to generate a token
 func GenerateJwtClaims() (jwtClaims map[string]interface{}) {
 	issued := time.Now()
-	expires := issued.Add(time.Minute * 10) // TODO: Support custom exp: r.PostForm.Get("exp")
+	expires := issued.Add(time.Minute * 10) // Future enhancement: support custom exp via request payload.
 
 	jwtClaims = make(map[string]interface{})
 
@@ -347,7 +350,7 @@ func generateTokenFromClaims(cl map[string]interface{}) (string, *TokenError) {
 		return "", &TokenError{Desc: "Error creating JWT signer", From: err}
 	}
 
-	token, err := jwt.SignedAndEncrypted(signer, encryptor).Claims(cl).CompactSerialize()
+	token, err := jwt.SignedAndEncrypted(signer, encryptor).Claims(cl).Serialize()
 
 	if err != nil {
 		return "", &TokenError{Desc: "Error signing and encrypting JWT", From: err}
@@ -382,9 +385,9 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 		return "", validationError
 	}
 
-	schema, error := getSchema(launcherSchema)
-	if error != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", error)
+	schema, err := getSchema(launcherSchema)
+	if err != "" {
+		return "", fmt.Sprintf("getSchema failed err: %v", err)
 	}
 
 	urlValues["account_service_url"] = []string{accountServiceURL}
@@ -413,7 +416,7 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 		The method call below is used to add boolean type URL parameters to requiredSchemaMetadata as without it,
 		it leads to improper typing, e.g. flag_1=true, 'true' would be considered a string rather than an boolean
 	*/
-	requiredSchemaMetadata = addUrlBooleanMetadata(updatedData, requiredSchemaMetadata)
+	requiredSchemaMetadata = addURLBooleanMetadata(updatedData, requiredSchemaMetadata)
 
 	for _, metadata := range requiredSchemaMetadata {
 		if metadata.Validator == "boolean" {
@@ -445,7 +448,7 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 	return token, ""
 }
 
-func addUrlBooleanMetadata(updatedMetadata map[string]interface{}, requiredSchemaMetadata []Metadata) []Metadata {
+func addURLBooleanMetadata(updatedMetadata map[string]interface{}, requiredSchemaMetadata []Metadata) []Metadata {
 	for metadataName, metadataValue := range updatedMetadata {
 		convertedValue := strings.ToLower(metadataValue.(string))
 		if strings.EqualFold(convertedValue, "true") || strings.Contains(convertedValue, "false") {
@@ -461,9 +464,9 @@ func TransformSchemaParamsToName(postValues url.Values) string {
 		return postValues["schema_name"][0]
 	}
 
-	eqId := postValues.Get("eq_id")
+	eqID := postValues.Get("eq_id")
 	formType := postValues.Get("form_type")
-	schemaName := fmt.Sprintf("%s_%s", eqId, formType)
+	schemaName := fmt.Sprintf("%s_%s", eqID, formType)
 
 	return schemaName
 }
@@ -473,13 +476,13 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 	log.Println("POST received: ", postValues)
 
 	schemaName := TransformSchemaParamsToName(postValues)
-	schemaUrl := postValues.Get("schema_url")
+	schemaURL := postValues.Get("schema_url")
 
-	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaUrl)
+	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaURL)
 
-	schema, error := getSchema(launcherSchema)
-	if error != "" {
-		return "", fmt.Sprintf("getSchema failed err: %v", error)
+	schema, err := getSchema(launcherSchema)
+	if err != "" {
+		return "", fmt.Sprintf("getSchema failed err: %v", err)
 	}
 
 	var claims = generateClaimsV2(postValues, schema)
@@ -520,10 +523,11 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 	return token, ""
 }
 
+// GetSurveyData returns a QuestionnaireSchema and any error from the provided LauncherSchema
 func GetSurveyData(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, string) {
-	schema, error := getSchema(launcherSchema)
-	if error != "" {
-		return QuestionnaireSchema{}, fmt.Sprintf("getSchema failed err: %v", error)
+	schema, err := getSchema(launcherSchema)
+	if err != "" {
+		return QuestionnaireSchema{}, fmt.Sprintf("getSchema failed err: %v", err)
 	}
 
 	defaults := GetDefaultValues()
@@ -607,7 +611,7 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 	return schema, ""
 }
 
-func getMandatatoryClaims(surveyType string, defaults map[string]string) []Metadata {
+func getMandatatoryClaims(_ string, defaults map[string]string) []Metadata {
 	var claims = []Metadata{
 		{"ru_ref", "false", defaults["ru_ref"]},
 		{"period_id", "false", defaults["period_id"]},
@@ -638,12 +642,12 @@ func stringInSlice(a string, list []string) bool {
 }
 
 func fillNonDefaults(schema QuestionnaireSchema) {
-	arbitraryUuid, _ := uuid.NewV4()
+	arbitraryUUID, _ := uuid.NewV4()
 	metadataValues := make(map[string]string)
 	metadataValues["date"] = "2016-05-11"
 	metadataValues["string"] = "Dummy text"
 	metadataValues["url"] = "https://example.com"
-	metadataValues["uuid"] = arbitraryUuid.String()
+	metadataValues["uuid"] = arbitraryUUID.String()
 	metadataValues["iso_8601_date_string"] = "2016-05-10T12:34:56+00:00"
 	for i, value := range schema.Metadata {
 		if value.Default == "" {
@@ -657,7 +661,7 @@ func GetDefaultValues() map[string]string {
 	defaults := make(map[string]string)
 	collectionExerciseSid, _ := uuid.NewV4()
 
-	var PARTICIPANT_ID = "ABC-" + fmt.Sprintf("%011d", rand.Int63n(1e11))
+	var participantID = "ABC-" + fmt.Sprintf("%011d", rand.Int63n(1e11))
 
 	defaults["collection_exercise_sid"] = collectionExerciseSid.String()
 	defaults["qid"] = fmt.Sprintf("%016d", rand.Int63n(1e16))
@@ -666,7 +670,7 @@ func GetDefaultValues() map[string]string {
 	defaults["user_id"] = "UNKNOWN"
 	defaults["period_id"] = "201605"
 	defaults["period_str"] = "May 2017"
-	defaults["collection_exercise_sid"] = collectionExerciseSid.String()
+	defaults["participant_id"] = participantID
 	defaults["ru_ref"] = "12345678901A"
 	defaults["ru_name"] = "ESSENTIAL ENTERPRISE LTD."
 	defaults["ref_p_start_date"] = "2016-05-01"
@@ -684,14 +688,14 @@ func GetDefaultValues() map[string]string {
 	defaults["postcode"] = "PE12 4GH"
 	defaults["display_address"] = "68 Abingdon Road, Goathill"
 	defaults["country"] = "E"
-	defaults["PARTICIPANT_ID"] = PARTICIPANT_ID
+	defaults["PARTICIPANT_ID"] = participantID
 	defaults["FIRST_NAME"] = "John"
 	defaults["TEST_QUESTIONS"] = "F"
 	defaults["survey_id"] = "123"
 	defaults["WINDOW_START_DATE"] = "2016-05-01"
 	defaults["WINDOW_CLOSE_DATE"] = "2016-05-31"
 	defaults["PORTAL_ID"] = fmt.Sprintf("%07d", rand.Int63n(1e7))
-	defaults["PARTICIPANT_WINDOW_ID"] = PARTICIPANT_ID + "-" + fmt.Sprintf("%03d", rand.Int63n(1e3))
+	defaults["PARTICIPANT_WINDOW_ID"] = participantID + "-" + fmt.Sprintf("%03d", rand.Int63n(1e3))
 
 	return defaults
 }

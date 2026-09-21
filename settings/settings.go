@@ -1,3 +1,4 @@
+// Package settings provides application settings management
 package settings
 
 import "os"

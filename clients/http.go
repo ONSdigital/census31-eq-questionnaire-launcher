@@ -1,3 +1,4 @@
+// Package clients provides HTTP client utilities
 package clients
 
 import (
