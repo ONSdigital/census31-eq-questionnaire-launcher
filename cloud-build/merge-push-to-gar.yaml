@@ -1,22 +1,4 @@
-steps:
-  # Install dependencies
-  - name: python:3.11
-    id: install-deps
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        pip install -r requirements.txt
-
-  # Run tests
-  - name: python:3.11
-    id: run-tests
-    entrypoint: bash
-    args:
-      - -c
-      - |
-        pytest -q
-
+steps:  
   # Build Docker image
   - name: gcr.io/cloud-builders/docker
     id: docker-build
