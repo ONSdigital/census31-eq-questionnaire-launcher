@@ -171,11 +171,12 @@ func quickLauncherHandler(w http.ResponseWriter, r *http.Request) {
 	urlValues.Add("case_id", caseID.String())
 	urlValues.Add("response_id", randomNumericString(16))
 	urlValues.Add("language_code", defaultValues["language_code"])
+	urlValues.Add("account_service_url", accountServiceURL)
 
 	token := ""
 	err := ""
 
-	token, err = authentication.GenerateTokenFromDefaults(schemaURL, accountServiceURL, urlValues)
+	token, err = authentication.GenerateTokenFromDefaults(schemaURL, urlValues)
 
 	if err != "" {
 		http.Error(w, err, 400)
