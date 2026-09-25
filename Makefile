@@ -4,6 +4,9 @@ format-go:
 lint-go:
 	golangci-lint run
 
+test-go:
+	go test ./...
+
 .PHONY: megalint megalint-apply clean-megalint
 megalint:
 	docker run --platform linux/amd64 --rm \

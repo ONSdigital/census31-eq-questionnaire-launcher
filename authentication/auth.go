@@ -527,12 +527,6 @@ func GetSurveyData(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, 
 	}
 
 	fillNonDefaults(schema)
-
-	claims := make([]string, 0)
-	for _, v := range schema.Metadata {
-		claims = append(claims, v.Name)
-	}
-
 	return schema, ""
 }
 
@@ -584,15 +578,6 @@ func getSchema(launcherSchema surveys.LauncherSchema) (QuestionnaireSchema, stri
 	}
 
 	return schema, ""
-}
-
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
 }
 
 func fillNonDefaults(schema QuestionnaireSchema) {
