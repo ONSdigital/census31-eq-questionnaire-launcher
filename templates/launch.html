@@ -9,17 +9,6 @@
                     <div class="ons-pl-grid-col">
                         <h1 class="ons-u-fs-xxl">Launch a survey</h1>
                         <hr>
-                        <h2 class="ons-u-mt-s ons-u-fs-m">Launch Pattern:</h2>
-                        <div class="ons-field ons-field--inline">
-                            <label class="ons-label" for="launch_pattern">Version</label>
-                            <select id="launch_pattern"
-                                name="version"
-                                class="ons-input ons-input--select ons-input--w-20"
-                                onload="loadMetadataForSchemaName()">
-                                <option value="v2" selected>v2</option>
-                            </select>
-                        </div>
-                        <hr>
                         <h2 class="ons-u-mt-s ons-u-fs-m">Launch by Schema Name:</h2>
                         <div class="ons-field ons-field--inline">
                             <label class="ons-label" for="schema_name">Schemas</label>
@@ -70,8 +59,10 @@
                         </div>
                         <hr class="ons-u-mb-m">
                         <div class="ons-btn-group">
-                            <button id="launch-btn"
+                            <button name="action_launch" 
+                                id="launch-btn"
                                 type="submit"
+                                value="Launch Survey"
                                 class="ons-btn ons-btn--disabled ons-u-mb-s"
                                 disabled
                                 onclick="saveResponseId()">
@@ -150,7 +141,7 @@
                             <div id="survey-metadata-accordion-content"
                                 class="ons-details__content ons-js-details-content ons-u-mb-m">
                                 <div id="survey_metadata" class="ons-field">
-                                    <p>Metadata fields will be loaded when you select a version and load a schema</p>
+                                    <p>Metadata fields will be loaded when you load a schema</p>
                                 </div>
                             </div>
                         </div>

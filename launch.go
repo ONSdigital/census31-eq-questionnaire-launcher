@@ -131,8 +131,6 @@ func getAccountServiceURL(r *http.Request) string {
 func redirectURL(w http.ResponseWriter, r *http.Request) {
 	hostURL := settings.Get("SURVEY_RUNNER_URL")
 
-	launchVersion := r.FormValue("version")
-
 	token := ""
 	err := ""
 
@@ -143,13 +141,14 @@ func redirectURL(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	launchAction := r.PostForm.Get("action_launch")
 	flushAction := r.PostForm.Get("action_flush")
 	log.Println("Request: " + r.PostForm.Encode())
 
 	switch {
 	case flushAction != "":
 		http.Redirect(w, r, hostURL+"/flush?token="+token, http.StatusTemporaryRedirect)
-	case launchVersion != "":
+	case launchAction != "":
 		http.Redirect(w, r, hostURL+"/session?token="+token, http.StatusMovedPermanently)
 	default:
 		http.Error(w, "Invalid Action", 500)
@@ -163,7 +162,6 @@ func quickLauncherHandler(w http.ResponseWriter, r *http.Request) {
 	schemaURL := urlValues.Get("schema_url")
 
 	defaultValues := authentication.GetDefaultValues()
-	urlValues.Add("version", defaultValues["version"])
 
 	log.Println("Quick launch request received", schemaURL)
 
@@ -177,7 +175,7 @@ func quickLauncherHandler(w http.ResponseWriter, r *http.Request) {
 	token := ""
 	err := ""
 
-	token, err = authentication.GenerateTokenFromDefaultsV2(schemaURL, accountServiceURL, urlValues)
+	token, err = authentication.GenerateTokenFromDefaults(schemaURL, accountServiceURL, urlValues)
 
 	if err != "" {
 		http.Error(w, err, 400)

@@ -165,7 +165,7 @@ func getSurveyMetadataFromClaims(
 	claims["survey_metadata"] = surveyMetadata
 }
 
-func generateClaimsV2(claimValues map[string][]string) (claims map[string]interface{}) {
+func generateClaims(claimValues map[string][]string) (claims map[string]interface{}) {
 
 	var roles []string
 	if rolesValues, ok := claimValues["roles"]; ok {
@@ -374,8 +374,8 @@ func getStringOrDefault(key string, values map[string][]string, defaultValue str
 	return defaultValue
 }
 
-// GenerateTokenFromDefaultsV2 coverts a set of DEFAULT values into a JWT
-func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, urlValues url.Values) (token string, errMsg string) {
+// GenerateTokenFromDefaults coverts a set of DEFAULT values into a JWT
+func GenerateTokenFromDefaults(schemaURL string, accountServiceURL string, urlValues url.Values) (token string, errMsg string) {
 	launcherSchema, validationError := launcherSchemaFromURL(schemaURL)
 	if validationError != "" {
 		return "", validationError
@@ -383,7 +383,7 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 
 	urlValues["account_service_url"] = []string{accountServiceURL}
 
-	claims := generateClaimsV2(urlValues)
+	claims := generateClaims(urlValues)
 
 	requiredSchemaMetadata, requiredMetadataErr := getRequiredSchemaMetadata(launcherSchema)
 	if requiredMetadataErr != "" {
@@ -397,9 +397,7 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 		surveyMetadata = claims["survey_metadata"].(map[string]interface{})
 	}
 
-	initialData := surveyMetadata["data"].(map[string]interface{})
-
-	for key, value := range initialData {
+	for key, value := range surveyMetadata {
 		updatedData[key] = value
 	}
 
@@ -418,7 +416,7 @@ func GenerateTokenFromDefaultsV2(schemaURL string, accountServiceURL string, url
 		updatedData[metadata.Name] = getStringOrDefault(metadata.Name, urlValues, metadata.Default)
 	}
 
-	surveyMetadata["data"] = updatedData
+	surveyMetadata = updatedData
 	claims["survey_metadata"] = surveyMetadata
 
 	jwtClaims := GenerateJwtClaims()
@@ -471,7 +469,7 @@ func GenerateTokenFromPost(postValues url.Values) (string, string) {
 
 	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaURL)
 
-	var claims = generateClaimsV2(postValues)
+	var claims = generateClaims(postValues)
 
 	jwtClaims := GenerateJwtClaims()
 	for key, v := range jwtClaims {
@@ -601,7 +599,6 @@ func GetDefaultValues() map[string]string {
 	collectionExerciseSid, _ := uuid.NewV4()
 
 	defaults["collection_exercise_sid"] = collectionExerciseSid.String()
-	defaults["version"] = "v2"
 	defaults["case_type"] = "B"
 	defaults["user_id"] = "UNKNOWN"
 	defaults["period_id"] = "201605"
