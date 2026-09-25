@@ -31,10 +31,10 @@ steps:
     id: docker-push
     args:
       - push
-      - "europe-west2-docker.pkg.dev/$PROJECT_ID/census31-eq-questionnaire-launcher/validator:$SHORT_SHA"
+      - "europe-west2-docker.pkg.dev/$PROJECT_ID/census31-eq-questionnaire-launcher/launcher:$SHORT_SHA"
 
 images:
-  - "europe-west2-docker.pkg.dev/$PROJECT_ID/census31-eq-questionnaire-launcher/validator:$SHORT_SHA"
+  - "europe-west2-docker.pkg.dev/$PROJECT_ID/census31-eq-questionnaire-launcher/launcher:$SHORT_SHA"
 
 substitutions:
   _ICON_EMOJI: ":cicd:"
