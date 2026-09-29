@@ -1,12 +1,15 @@
 steps:
-  # Build Docker image (PR-only, no push)
   - name: gcr.io/cloud-builders/docker
-    id: docker-build-eq-launcher
     args:
+      - buildx
       - build
-      - "-t"
-      - "launcher-pr:$SHORT_SHA"
+      - '--platform=${_PLATFORM}'
+      - '--load'
+      - '-t'
+      - launcher-pr:$SHORT_SHA
       - .
-
+    id: docker-build-eq-launcher
 options:
   logging: CLOUD_LOGGING_ONLY
+substitutions:
+  _PLATFORM: linux/amd64
