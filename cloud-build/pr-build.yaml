@@ -14,3 +14,4 @@ options:
     logging: CLOUD_LOGGING_ONLY
 substitutions:
     _PLATFORM: linux/amd64
+
