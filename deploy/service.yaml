@@ -16,7 +16,7 @@ spec:
         run.googleapis.com/vpc-access-egress: all-traffic
     spec:
       serviceAccountName: '' # from-param: ${service_account}
-      containerConcurrency: '' # from-param: ${concurrency}
+      containerConcurrency: 250 # from-param: ${concurrency}
       containers:
         - image: launcher-image
           ports:
