@@ -3,10 +3,8 @@
 This directory contains the Cloud Build YAML files used by the CI/CD system in the
 census31-eq-ci-terraform project.
 
-Two pipelines are defined:The cloud build files are invoked by triggers during 
-
+Two pipelines are defined:The cloud build files are invoked by triggers during
 pr-build.yaml — PR validation pipeline
-
 merge-push-to-gar.yaml — merge-to-main build and publish pipeline
 
 ## 1. PR Build Pipeline — pr-build.yaml
@@ -29,7 +27,7 @@ a. Build Docker image
 
 b. Push to GAR
 
-## Note:
+## Note
 
 $PROJECT_ID is passed forom the trigger
 
