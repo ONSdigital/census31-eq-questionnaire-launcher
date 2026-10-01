@@ -1,0 +1,4 @@
+{
+    "IgnoreRuleIds": ["DS162092", "DS126858"],
+    "Globs": ["**/.git/**", "**/megalinter-reports/**"]
+}

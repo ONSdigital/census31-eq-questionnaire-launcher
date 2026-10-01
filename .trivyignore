@@ -1,0 +1,2 @@
+# GO-2026-5932 has no upstream fix and targets openpgp, which this service does not use.
+GO-2026-5932
