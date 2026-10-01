@@ -3,6 +3,7 @@ kind: Service
 metadata:
   name: census31-eq-questionnaire-launcher
   annotations:
+    checkov.io/skip1: CKV_K8S_21=Cloud Run services do not use Kubernetes namespaces
     run.googleapis.com/ingress: internal-and-cloud-load-balancing
     run.googleapis.com/invoker-iam-disabled: "true"
 spec:
