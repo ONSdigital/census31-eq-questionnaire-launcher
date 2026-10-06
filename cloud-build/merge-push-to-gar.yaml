@@ -9,14 +9,9 @@ steps:
       - "--load"
       - "-t"
       - "europe-west2-docker.pkg.dev/${_PROJECT_ID}/images/census31-eq-questionnaire-launcher:${SHORT_SHA}"
-      - "."
-
-  - id: docker-tag-latest
-    name: gcr.io/cloud-builders/docker
-    args:
-      - tag
-      - "europe-west2-docker.pkg.dev/${_PROJECT_ID}/images/census31-eq-questionnaire-launcher:${SHORT_SHA}"
+      - "-t"
       - "europe-west2-docker.pkg.dev/${_PROJECT_ID}/images/census31-eq-questionnaire-launcher:latest"
+      - "."
 
 images:
   - "europe-west2-docker.pkg.dev/${_PROJECT_ID}/images/census31-eq-questionnaire-launcher:${SHORT_SHA}"
