@@ -3,7 +3,6 @@ package main // import "github.com/ONSdigital/census31-eq-questionnaire-launcher
 
 import (
 	"fmt"
-	"html"
 	"html/template"
 	"log"
 	"math/rand"
@@ -11,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/authentication"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
@@ -67,7 +65,7 @@ type page struct {
 	AccountServiceLogOutURL string
 }
 
-func getStatusPage(w http.ResponseWriter, _ *http.Request) {
+func getStatusHandler(w http.ResponseWriter, _ *http.Request) {
 	_, writeError := w.Write([]byte("OK"))
 	if writeError != nil {
 		http.Error(w, fmt.Sprintf("Write failed to write data as part of an HTTP reply: %v", writeError), 500)
@@ -76,10 +74,11 @@ func getStatusPage(w http.ResponseWriter, _ *http.Request) {
 }
 
 func getLaunchHandler(w http.ResponseWriter, r *http.Request) {
+	launcherURL := getLauncherURL(r)
 	p := page{
 		Schemas:                 surveys.GetAvailableSchemas(),
-		AccountServiceURL:       getAccountServiceURL(r),
-		AccountServiceLogOutURL: getAccountServiceURL(r),
+		AccountServiceURL:       launcherURL,
+		AccountServiceLogOutURL: launcherURL,
 	}
 	serveTemplate("launch.html", p, w, r)
 }
@@ -93,64 +92,55 @@ func postLaunchHandler(w http.ResponseWriter, r *http.Request) {
 	redirectURL(w, r)
 }
 
-func getSurveyDataHandler(w http.ResponseWriter, r *http.Request) {
+func getSchemaHandler(w http.ResponseWriter, r *http.Request) {
 	schemaName := r.URL.Query().Get("schema_name")
 	schemaURL := r.URL.Query().Get("schema_url")
 
 	launcherSchema := surveys.GetLauncherSchema(schemaName, schemaURL)
 
-	surveyData, err := authentication.GetSurveyData(launcherSchema)
-
-	if err != "" {
-		http.Error(w, fmt.Sprintf("GetSurveyData err: %v", err), 500)
+	schema, err := authentication.GetSchema(launcherSchema)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("GetSchema err: %v", err), 500)
 		return
 	}
 
-	surveyDataJSON, _ := json.Marshal(surveyData)
+	schemaJSON, _ := json.Marshal(schema)
 
-	_, writeError := w.Write([]byte(surveyDataJSON))
+	_, writeError := w.Write([]byte(schemaJSON))
 	if writeError != nil {
 		http.Error(w, fmt.Sprintf("Write failed to write data as part of an HTTP reply: %v", writeError), 500)
 		return
 	}
 }
 
-func getAccountServiceURL(r *http.Request) string {
-	forwardedProtocol := r.Header.Get("X-Forwarded-Proto")
-
-	requestProtocol := "http"
-
-	if forwardedProtocol != "" {
-		requestProtocol = forwardedProtocol
+func getLauncherURL(r *http.Request) string {
+	protocol := r.Header.Get("X-Forwarded-Proto")
+	if protocol == "" {
+		protocol = "http"
 	}
 
-	return fmt.Sprintf("%s://%s",
-		requestProtocol,
-		html.EscapeString(r.Host))
+	return protocol + "://" + r.Host
 }
 
 func redirectURL(w http.ResponseWriter, r *http.Request) {
 	hostURL := settings.Get("SURVEY_RUNNER_URL")
 
-	launchVersion := r.FormValue("version")
+	launchAction := r.PostForm.Get("action_launch") != ""
+	flushAction := r.PostForm.Get("action_flush") != ""
+	log.Println("Request: " + r.PostForm.Encode())
+	log.Println("POST received: ", r.PostForm)
 
-	token := ""
-	err := ""
+	token, err := authentication.GenerateToken(r.PostForm, flushAction)
 
-	token, err = authentication.GenerateTokenFromPost(r.PostForm)
-
-	if err != "" {
-		http.Error(w, err, 500)
+	if err != nil {
+		http.Error(w, err.Error(), 500)
 		return
 	}
 
-	flushAction := r.PostForm.Get("action_flush")
-	log.Println("Request: " + r.PostForm.Encode())
-
 	switch {
-	case flushAction != "":
+	case flushAction:
 		http.Redirect(w, r, hostURL+"/flush?token="+token, http.StatusTemporaryRedirect)
-	case launchVersion != "":
+	case launchAction:
 		http.Redirect(w, r, hostURL+"/session?token="+token, http.StatusMovedPermanently)
 	default:
 		http.Error(w, "Invalid Action", 500)
@@ -158,36 +148,38 @@ func redirectURL(w http.ResponseWriter, r *http.Request) {
 }
 
 func quickLauncherHandler(w http.ResponseWriter, r *http.Request) {
-	hostURL := settings.Get("SURVEY_RUNNER_URL")
-	accountServiceURL := getAccountServiceURL(r)
+	accountServiceURL := getLauncherURL(r)
 	urlValues := r.URL.Query()
+
 	schemaURL := urlValues.Get("schema_url")
-
-	defaultValues := authentication.GetDefaultValues()
-	urlValues.Add("version", defaultValues["version"])
-
 	log.Println("Quick launch request received", schemaURL)
 
-	collectionExerciseSid, _ := uuid.NewV4()
-	caseID, _ := uuid.NewV4()
-	urlValues.Add("collection_exercise_sid", collectionExerciseSid.String())
-	urlValues.Add("case_id", caseID.String())
-	urlValues.Add("response_id", randomNumericString(16))
-	urlValues.Add("language_code", defaultValues["language_code"])
-	urlValues.Add("response_expires_at", time.Now().AddDate(0, 0, 7).Format("2006-01-02T15:04:05+00:00"))
+	defaultClaims := []struct {
+		name  string
+		value string
+	}{
+		{name: "collection_exercise_sid", value: uuid.Must(uuid.NewV4()).String()},
+		{name: "case_id", value: uuid.Must(uuid.NewV4()).String()},
+		{name: "response_id", value: randomNumericString(16)},
+		{name: "language_code", value: "en"},
+		{name: "account_service_url", value: accountServiceURL},
+	}
 
-	token := ""
-	err := ""
+	for _, claim := range defaultClaims {
+		if _, exists := urlValues[claim.name]; !exists {
+			urlValues.Set(claim.name, claim.value)
+		}
+	}
 
-	token, err = authentication.GenerateTokenFromDefaultsV2(schemaURL, accountServiceURL, urlValues)
-
-	if err != "" {
-		http.Error(w, err, 400)
+	token, err := authentication.GenerateToken(urlValues, false)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
 		return
 	}
 
 	if schemaURL != "" {
-		http.Redirect(w, r, hostURL+"/session?token="+token, http.StatusFound)
+		redirectURL := settings.Get("SURVEY_RUNNER_URL") + "/session?token=" + token
+		http.Redirect(w, r, redirectURL, http.StatusFound)
 	} else {
 		http.Error(w, "Not Found", 404)
 	}
@@ -196,20 +188,19 @@ func quickLauncherHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 
-	// Launch handlers
 	r.HandleFunc("/", getLaunchHandler).Methods("GET")
 	r.HandleFunc("/", postLaunchHandler).Methods("POST")
-	r.HandleFunc("/survey-data", getSurveyDataHandler).Methods("GET")
-
-	// Author Launcher with passed parameters in Url
 	r.HandleFunc("/quick-launch", quickLauncherHandler).Methods("GET")
-
-	// Status Page
-	r.HandleFunc("/status", getStatusPage).Methods("GET")
+	r.HandleFunc("/schema", getSchemaHandler).Methods("GET")
+	r.HandleFunc("/status", getStatusHandler).Methods("GET")
 
 	// Serve static assets
 	staticFs := http.FileServer(http.Dir("static"))
-	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", staticFs))
+	staticHandler := http.StripPrefix("/static/", staticFs)
+	r.PathPrefix("/static/").Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache")
+		staticHandler.ServeHTTP(w, r)
+	}))
 
 	// Bind to a port and pass our router in
 	hostname := settings.Get("GO_LAUNCH_A_SURVEY_LISTEN_HOST") + ":" + settings.Get("GO_LAUNCH_A_SURVEY_LISTEN_PORT")
