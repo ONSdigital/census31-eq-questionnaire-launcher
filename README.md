@@ -38,6 +38,24 @@ docker run -e SURVEY_RUNNER_SCHEMA_URL=http://host.docker.internal:5000 -it -p 8
 
 You should then be able to access go launcher at `localhost:8000`
 
+## Cloud Run Deployment
+
+The deployment configuration is kept alongside the application so changes to the
+service can be reviewed with the code. [skaffold.yaml](skaffold.yaml) declares
+the `launcher-image` artifact and uses [deploy/service.yaml](deploy/service.yaml)
+as the Cloud Run service manifest. The Cloud Build trigger builds and pushes the
+Docker image, then creates a Cloud Deploy release that supplies its image
+reference for `launcher-image`.
+
+The service manifest defines ingress, VPC egress, the runtime service account,
+scaling, resource limits, concurrency, port 8000, and `SURVEY_RUNNER_URL`.
+Values marked `from-param` are placeholders filled by Cloud Deploy target
+parameters for the deployment environment; the empty strings in the manifest
+are not runtime defaults.
+
+The `checkov.io/skip1` annotation suppresses `CKV_K8S_21` only for this
+service because Cloud Run does not use Kubernetes namespaces.
+
 ## Run Quick-Launch
 
 If the schema specifies a `schema_name` field, that will be used as the schema_name claim. If not, the filename from the URL (before `.`) will be used.
