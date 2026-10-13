@@ -32,6 +32,8 @@ DISABLE_LINTERS:
   - GO_REVIVE # Linting covered by golangci-lint which runs revive internally (2.11s)
   - JSON_V8R # Makes network calls to SchemaStore; covered by jsonlint + npm-package-json-lint (13.6s)
   - YAML_V8R # Makes network calls to SchemaStore; syntax and workflow coverage via yamllint + actionlint (3.18s)
+  - REPOSITORY_OSV_SCANNER # Gives little value alongside dependabot CTE-339. Possibly to be reintroduced closer to release
+  - REPOSITORY_TRIVY # Gives little value alongside dependabot CTE-339. Possibly to be reintroduced closer to release
 
 FORMATTERS_DISABLE_ERRORS: false # Ensures code is actually fixable when using `make megalint-apply`
 SHOW_ELAPSED_TIME: true # Displays execution time for each linter
