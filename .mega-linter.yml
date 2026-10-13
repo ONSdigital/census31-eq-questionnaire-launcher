@@ -41,6 +41,8 @@ FILTER_REGEX_EXCLUDE: (megalinter-reports/.*)
 GO_GOLANGCI_LINT_CLI_LINT_MODE: project
 GO_GOLANGCI_LINT_ARGUMENTS: ["-c", ".golangci.yml"]
 GO_GOLANGCI_LINT_PRE_COMMANDS:
+  - command: go env -w GOTOOLCHAIN=auto
+    cwd: workspace
   - command: go mod tidy
     cwd: workspace
   - command: go mod download
