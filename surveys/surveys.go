@@ -8,7 +8,6 @@ import (
 	"log"
 	"sort"
 
-	"github.com/AreaHQ/jsonhal"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/clients"
 	"github.com/ONSdigital/census31-eq-questionnaire-launcher/settings"
 	"golang.org/x/text/cases"
@@ -22,29 +21,7 @@ type LauncherSchema struct {
 	URL        string
 }
 
-// RegisterResponse is the response from the eq-survey-register request
-type RegisterResponse struct {
-	jsonhal.Hal
-}
-
-// Schemas is a list of Schema
-type Schemas []Schema
-
-// Schema is an available schema
-type Schema struct {
-	jsonhal.Hal
-	Name string `json:"name"`
-}
-
-// LauncherSchemaFromFilename creates a LauncherSchema record from a schema filename
-func LauncherSchemaFromFilename(filename string, surveyType string) LauncherSchema {
-	return LauncherSchema{
-		Name:       filename,
-		SurveyType: surveyType,
-	}
-}
-
-// GetAvailableSchemas Gets the list of static schemas an joins them with any schemas from the eq-survey-register if defined
+// GetAvailableSchemas Gets the list of static schemas
 func GetAvailableSchemas() map[string][]LauncherSchema {
 	runnerSchemas := getAvailableSchemasFromRunner()
 	sort.Sort(ByFilename(runnerSchemas))
@@ -100,29 +77,18 @@ func getAvailableSchemasFromRunner() []LauncherSchema {
 
 	for surveyType, schemas := range schemaMapResponse {
 		for _, schemaName := range schemas {
-			schemaList = append(schemaList, LauncherSchemaFromFilename(schemaName, surveyType))
+			launcherSchema := LauncherSchema{
+				Name:       schemaName,
+				SurveyType: surveyType,
+			}
+			schemaList = append(schemaList, launcherSchema)
 		}
 	}
 
 	return schemaList
 }
 
-// FindSurveyByName Finds the schema in the list of available schemas
-func FindSurveyByName(name string) LauncherSchema {
-	availableSchemas := GetAvailableSchemas()
-
-	for _, schemasBySurveyType := range availableSchemas {
-		for _, schema := range schemasBySurveyType {
-			if schema.Name == name {
-				return schema
-			}
-		}
-	}
-
-	panic("Schema not found")
-}
-
-// GetLauncherSchema returns a LauncherSchema instance by loading schema from name or URL
+// GetLauncherSchema returns a LauncherSchema struct with schema name or URL
 func GetLauncherSchema(schemaName string, schemaURL string) LauncherSchema {
 	var launcherSchema LauncherSchema
 
@@ -130,12 +96,13 @@ func GetLauncherSchema(schemaName string, schemaURL string) LauncherSchema {
 	case schemaURL != "":
 		log.Println("Getting schema by URL: " + schemaURL)
 		launcherSchema = LauncherSchema{
-			URL:  schemaURL,
-			Name: schemaName,
+			URL: schemaURL,
 		}
 	case schemaName != "":
 		log.Println("Searching for schema by name: " + schemaName)
-		launcherSchema = FindSurveyByName(schemaName)
+		launcherSchema = LauncherSchema{
+			Name: schemaName,
+		}
 	default:
 		panic("Either `schema_name` or `schema_url` must be provided.")
 	}
