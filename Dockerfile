@@ -1,5 +1,5 @@
 # Start from golang base image
-FROM --platform=$BUILDPLATFORM golang:1.25 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27.3 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -16,7 +16,13 @@ RUN echo "TARGETOS: $TARGETOS" \
     && CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -a -installsuffix cgo -mod mod -o /go/bin/census31-eq-questionnaire-launcher .
 
 ######## Start a new stage from scratch #######
-FROM alpine:3.20
+FROM alpine:3.24.3
+
+# Force upgrade the CA certificate store to drop revoked eMudhra CAs
+# This can be removed once the alpine base image has an updated CA certificate store
+RUN apk update && \
+    apk add --no-cache ca-certificates && \
+    update-ca-certificates
 
 WORKDIR /app
 
