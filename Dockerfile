@@ -1,5 +1,5 @@
 # Start from golang base image
-FROM --platform=$BUILDPLATFORM golang:1.27 AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27.3 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 
