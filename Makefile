@@ -12,12 +12,14 @@ megalint:
 	docker run --platform linux/amd64 --rm \
 		-v /var/run/docker.sock:/var/run/docker.sock:rw \
 		-v $(shell pwd):/tmp/lint:rw \
+		-e GOTOOLCHAIN=auto \
 		ghcr.io/oxsecurity/megalinter:v10.1.0
 
 megalint-apply:
 	docker run --platform linux/amd64 --rm \
 		-v /var/run/docker.sock:/var/run/docker.sock:rw \
 		-v $(shell pwd):/tmp/lint:rw \
+		-e GOTOOLCHAIN=auto \
 		-e APPLY_FIXES=all \
 		ghcr.io/oxsecurity/megalinter:v10.1.0
 
